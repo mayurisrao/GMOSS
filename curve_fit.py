@@ -10,7 +10,7 @@ import glob
 import time
 
 pixels = 3072 # Total Number of Pixels
-DEGREE = 1
+DEGREE = 4
 
 start = time.time()
 
