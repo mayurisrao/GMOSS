@@ -22,9 +22,10 @@ TCMB = 2.72548
 NHPIX = 3072
 GSPAN = 100.0
 
-
+correction_150offset = 21.4
+correction_150scaling = 1.05
 #apply corrections to 150,408,1420
-corrections_applied_to = np.array([150,408,1420])
+#corrections_applied_to = np.array([150,408,1420])
 
 #some important stuff
 scale_gam_nu = (3.0*q_e*Bmag*sin_alph)/(4.0*np.pi*m_e*cvel)
@@ -52,14 +53,24 @@ frequency_in_GHz = [np.float32(f*10**-3) for f in frequency]
 #print(frequency)
 
 f = open("convexity.txt", "w")
+length_ = len(map_files)
 
 ######################Starting our main program#####################
 for pixel in range(pixels):
     print(f"Pixel Number: {pixel+1}")
     b_temp = np.array([])
-    for file in map_files:
-        data = np.genfromtxt(file)
-        b_temp= np.append(b_temp, data[pixel])
+    
+    for i in range(length_):
+        data = np.genfromtxt(map_files[i])
+        if frequency[i] ==  22: b_temp= np.append(b_temp, data[pixel])
+        if frequency[i] == 45: b_temp= np.append(b_temp, data[pixel])
+        if frequency[i] == 150:
+            data[pixel] = (data[pixel] - correction_150offset)*correction_150scaling
+            data[pixel] = data[pixel] - TCMB
+            b_temp= np.append(b_temp, data[pixel])
+        if frequency[i] == 408: b_temp= np.append(b_temp, data[pixel] - TCMB)
+        if frequency[i] == 1420: b_temp= np.append(b_temp, data[pixel] - TCMB)
+        if frequency[i] == 23000: b_temp= np.append(b_temp, data[pixel])
 
     #to obtain concavity or convexity
     #Spectral index between 45 MHz and 150 MHz
