@@ -84,7 +84,8 @@ for pixel in range(pixels):
     if alpha2 < 2.0: alpha2 = 2.
     if alpha2 > 3.0: alpha2 = 3.
 
-    if alpha1 < alpha2: f.write(f"{pixel+1} convex\n")
-    elif alpha1 > alpha2: f.write(f"{pixel+1} concave\n")
+    if alpha1 < alpha2: f.write(f"{pixel+1} {alpha1} {alpha2} {repr(b_temp)} convex\n")
+    elif alpha1 > alpha2: f.write(f"{pixel+1} {alpha1} {alpha2} {repr(b_temp)} concave\n")
 
+f.close()
 f.close()
