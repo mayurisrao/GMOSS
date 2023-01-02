@@ -88,4 +88,3 @@ for pixel in range(pixels):
     elif alpha1 > alpha2: f.write(f"{pixel+1} {alpha1} {alpha2} {repr(b_temp)} concave\n")
 
 f.close()
-f.close()
