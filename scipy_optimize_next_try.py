@@ -26,8 +26,12 @@ def chisq(params, xobs, yobs):
     print(yerr)
     return yerr
 
+<<<<<<< HEAD
+result = minimize(chisq, [1.0,2.0,1.0,1.0,1.0,1.0,1.0], args = (frequency,b_temp),  method = 'Nelder-Mead', options = {'disp' : True, 'maxiter': 10000})
+=======
 result = minimize(chisq, [1,2,2,2,1,1e6,8000], args = (frequency,b_temp),  method = 'Nelder-Mead', options = {'disp' : True, 'maxiter': 10000})
 #result = minimize(chisq, [1,2,1,1,1,1,1], args = (frequency,b_temp),  method = 'Nelder-Mead', options = {'disp' : True, 'maxiter': 10000})
+>>>>>>> ee6ea3822d4f8d856f86eae8972f3d33c0bf8e33
 #ynw3 = concave_func(frequency, *result.x)
 x = np.linspace(-300,24000,1000)
 plt.yscale("log")
@@ -36,11 +40,17 @@ plt.plot(x,concave_func(x, *result.x) )
 print(result.x)
 print(result)
 #plt.plot(frequency, ynw3)
+<<<<<<< HEAD
+plt.xscale("log")
+plt.yscale("log")
+plt.plot(frequency, b_temp, 'r*')
+=======
 plt.plot(frequency, b_temp, 'r*' )
 plt.xlabel("log Frequency[MHz]")
 plt.ylabel("log Temp[K]")
 plt.title('log Temparature vs log Frequency')
 
+>>>>>>> ee6ea3822d4f8d856f86eae8972f3d33c0bf8e33
 plt.grid()
 plt.savefig('the_plot_2060.png')
 
