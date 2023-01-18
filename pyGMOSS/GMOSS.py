@@ -3,6 +3,11 @@ import matplotlib.pyplot as plt
 import scipy as sp
 import time as time
 import glob
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+DATA = os.environ.get('DATA')
 
 start = time.time()
 pixels = 3072
@@ -31,7 +36,7 @@ correction_150scaling = 1.05
 scale_gam_nu = (3.0*q_e*Bmag*sin_alph)/(4.0*np.pi*m_e*cvel)
 
 #appending the maps to the list
-text_files = glob.glob("*.txt")
+text_files = glob.glob(DATA + "*.txt")
 map_files = []
 for file in text_files:
     if file.startswith("map"):
@@ -52,7 +57,7 @@ map_files = [f'map_{i}_r4_5deg_nested_galactic_Kelvin.txt' for i in frequency]
 frequency_in_GHz = [np.float32(f*10**-3) for f in frequency] 
 #print(frequency)
 
-f = open("convexity.txt", "w")
+f = open(DATA + "convexity.txt", "w")
 length_ = len(map_files)
 
 ######################Starting our main program#####################
