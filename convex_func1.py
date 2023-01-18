@@ -12,7 +12,7 @@ import scipy as sp
 
 #convex shape at pixel 36 and we will use that
 frequency = np.array([22,45,150,408,1420,23000]) #x_values
-#frequency = [np.float32(f*10**-3) for f in frequency]
+frequency = np.array([np.float32(f*10**-3) for f in frequency])
 #b_temp = [9.18573758e+04, 1.77507604e+04, 7.10610657e+02, 6.49989393e+01, 2.11183872e+00, 9.89014738e-04] #y_values
 b_temp = np.array([9.18573758e+04, 1.77507604e+04, 7.10610657e+02, 6.49989393e+01, 2.11183872e+00, 9.89014738e-04])
 
@@ -39,13 +39,42 @@ nu_break = np.sqrt(0.150*0.408)*1e9
 extn = np.exp(-1.0*np.power((nu_t/frequency[4]),2.1))
 alpha1, alpha2 = 2.6728667075093107, 2.7477254162083455
 GSPAN = 100
-#alpha = 2
-nu = 1420
-nu_min = 1420*1e6/GSPAN
-nu_max = 1420*1e6*GSPAN
+nu = 1.420
+nu_min = nu*1e9/GSPAN
+nu_max = nu*1e9*GSPAN
 gama_min = np.sqrt((nu_min)/scale_gam_nu)
 gama_max = np.sqrt((nu_max)/scale_gam_nu)
 gama_break = np.sqrt((nu_break)/scale_gam_nu)
+
+xb = gama_break
+xl = gama_min
+xu = gama_max
+
+def integrand_for_param(gama, alpha):
+    nu_c = scale_gam_nu * (gama**2)
+    x = nu/nu_c
+    integrand_ = F(x)*x*np.power(gama, -1*(2*alpha - 3)) 
+    return integrand_
+
+
+if xl < xb:
+    C1 = alpha2
+    I, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha1))
+    I *= np.power(gama_break, 2*C1-3)
+
+elif xu < xb:
+    C1 = alpha2
+    I, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha2))
+    I *= np.power(gama_break, 2*C1-3)
+
+else:
+    xu = xb
+    C1 = alpha2
+    I1, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha1))
+    I1 *= np.power(gama_break, 2*C1-3)
+
+
+
 
 def F(x):
     if x<3: 
@@ -103,7 +132,10 @@ def chisq(params, xobs, yobs):
     print(f"y error is {yerr}")
     return yerr
 #bounds = ([0,100], [2,3], [2,3], [0, 1e12], [0, 1e-15], [0,5000], [0,1e7])
+
 result = minimize(chisq,args = (frequency, b_temp), x0 = [25000, 2.5, 2.5, 0.36e6,8.39e-10, 2060, 0.3e6] , method='Nelder-Mead', options={'verbose': 1, 'maxiter': 100000})
+
+
 a0= [75, 2.5, 2.5, 0.36e9,8.39e-10, 2060, 0.3e6]
 xs = np.linspace(1,24000,100)
 _, yinitial = convex_func(xs, *np.array(a0))
