@@ -12,8 +12,9 @@ import scipy as sp
 
 #convex shape at pixel 36 and we will use that
 frequency = np.array([22.,45.,150.,408.,1420.,23000.]) #x_values
-#frequency = np.array([np.float32(f*10**-3) for f in frequency])
+frequency = np.array([np.float32(f*10**-3) for f in frequency])
 #b_temp = [9.18573758e+04, 1.77507604e+04, 7.10610657e+02, 6.49989393e+01, 2.11183872e+00, 9.89014738e-04] #y_values
+print(frequency)
 b_temp = np.array([9.18573758e+04, 1.77507604e+04, 7.10610657e+02, 6.49989393e+01, 2.11183872e+00, 9.89014738e-04])
 
 cvel = 2.99792458e+08 # m s^-1
@@ -65,13 +66,13 @@ def F(x):
         return expo*((const*quad_term) - error_function_term) 
 
 def integrand_for_param(gama, alpha):
-    nu_c = scale_gam_nu * (gama**2)
+    nu_c = (scale_gam_nu * (gama**2))/1e9
     x = nu/nu_c
     integrand_ = F(x)*x*np.power(gama, -1*(2*alpha - 3)) 
     return integrand_
 
 def integrand_for_convex(gama, alpha, nu):
-    nu_c = scale_gam_nu * (gama**2)
+    nu_c = (scale_gam_nu * (gama**2))/1e9
     x = nu/nu_c
     integrand_ = F(x)*x*np.power(gama, -1*(2*alpha - 3)) 
     return integrand_
@@ -79,23 +80,23 @@ def integrand_for_convex(gama, alpha, nu):
 
 if xl > xb:
     C1 = alpha2
-    I, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha1))
+    I, _ = integrate.quad(integrand_for_param, xl, xb, args = (alpha1))
     I *= np.power(gama_break, 2*C1-3)
 
 elif xu < xb:
     C1 = alpha1
-    I, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha2))
+    I, _ = integrate.quad(integrand_for_param, xl, xb, args = (alpha2))
     I *= np.power(gama_break, 2*C1-3)
 
 else:
     xu = xb
     C1 = alpha1
-    I1, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha1))
+    I1, _ = integrate.quad(integrand_for_param, xl, xb, args = (alpha1))
     I1 *= np.power(gama_break, 2*C1-3)
     xl = xb
     xu = gama_max
     C1 = alpha2
-    I2, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha2))
+    I2, _ = integrate.quad(integrand_for_param, xl, xb, args = (alpha2))
     I2 *= np.power(gama_break, 2*C1-3)
     I = I1 + I2
 
@@ -119,23 +120,23 @@ xu = gama_max
 
 if xl > xb:
     C1 = alpha2
-    I, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha1))
+    I, _ = integrate.quad(integrand_for_param, xl,xb, args = (alpha1))
     I *= np.power(gama_break, 2*C1-3)
 
 elif xu < xb:
     C1 = alpha1
-    I, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha2))
+    I, _ = integrate.quad(integrand_for_param, xl,xb, args = (alpha2))
     I *= np.power(gama_break, 2*C1-3)
 
 else:
     xu = xb
     C1 = alpha1
-    I1, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha1))
+    I1, _ = integrate.quad(integrand_for_param, xl,xb, args = (alpha1))
     I1 *= np.power(gama_break, 2*C1-3)
     xl = xb
     xu = gama_max
     C1 = alpha2
-    I2, _ = integrate.quad(integrand_for_param, gama_min, gama_max, args = (alpha2))
+    I2, _ = integrate.quad(integrand_for_param, xl,xb, args = (alpha2))
     I2 *= np.power(gama_break, 2*C1-3)
     I = I1 + I2
 
@@ -152,31 +153,12 @@ x_ini = []
 x_ini.extend([fnorm, alpha1, np.log10(alpha2), np.log10(nu_break), np.log10(Tx), np.log10(Te), np.log10(nu_t)])
 print(x_ini)
 
-################################
-
-# def F(x):
-#     if x<3: 
-#         one = (np.pi*x)/3
-#         two =  (9*(x**(11/3))*gamma(-2/3))/(160*2**(2/3)) 
-#         three = ((x**(1/3))*(16+(3*x**2))*gamma(-1/3))/(24*2**(1/3))
-#         return -one + two -three  
-#     else:
-#         expo = np.exp(-x)/(967458816*np.sqrt(2)*x**(5/3))
-#         const = 13*np.sqrt(np.pi)
-#         quad_term = 2429625 + 2*x*(-1922325 + (5418382*x) + 83221732*(x**2))
-#         error_function_term =  119630621+6*np.exp(x)*np.pi*(x**(7/2))+sp.special.erfc(np.sqrt(x))
-#         return expo*((const*quad_term) - error_function_term) 
-
-# def integrand(gamma, x, alpha):
-#     result = F(x)*x*gamma**(-(2*alpha) - 3)
-#     return result
-
 print(nu_min)
 print(nu_max)
 def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, T_e, nu_t):
     b_temps = []
     global scale_gam_nu, GSPAN
-    print(f"alpha1 is {alpha1}")
+    #print(f"alpha1 is {alpha1}")
 
     # nu_min = 1420*1e6/GSPAN
     # nu_max = 1420*1e6*GSPAN
@@ -195,8 +177,8 @@ def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, T_e, nu_t):
         # gamma = np.sqrt(nu/scale_gam_nu)
         # gamma_t = np.sqrt(nu_t/scale_gam_nu)
         # x = nu/nu_c
-        integ1, _ = integrate.quad(integrand_for_convex, gama_min, gama_max, args = (alpha1, fre))
-        integ2, _ = integrate.quad(integrand_for_convex, gama_min, gama_max, args = (alpha2, fre))
+        integ1, _ = integrate.quad(integrand_for_convex, gama_min, gama_break, args = (alpha1, fre))
+        integ2, _ = integrate.quad(integrand_for_convex, gama_break, gama_max, args = (alpha2, fre))
         expo = np.exp(-1*((nu_t/fre)**2.1))
         three = I_x*np.power(fre, -2.1)
         result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + T_e*(1 - expo)
