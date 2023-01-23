@@ -24,12 +24,10 @@ sin_alph = 1.0
 Bmag = 1e-9 # Tesla == 10 micro-Gauss
 #PI = 3.14159265358979
 # FTOL = 1.0e-6
-T_e = 8000.0 # Thermal electron temperature
+#T_e = 8000.0 # Thermal electron temperature
 # TCMB = 2.72548
 # NHPIX = 3072
 GSPAN = 100.0
-
-
 
 #some important stuff
 scale_gam_nu = (3.0*q_e*Bmag*sin_alph)/(4.0*np.pi*m_e*cvel)
@@ -150,12 +148,14 @@ if Tx <= 0:
 print(f"the parameters are fnorm = {fnorm}, alpha1 = {alpha1}, alpha2 = {alpha2}, nu_break = {nu_break/1e6}, Tx = {Tx}, Te = {Te}, nu_t = {nu_t}")
 
 x_ini = []
-x_ini.extend([fnorm, alpha1, np.log10(alpha2), np.log10(nu_break), np.log10(Tx), np.log10(Te), np.log10(nu_t)])
+#x_ini.extend([np.log10(fnorm), np.log(alpha1), np.log10(alpha2), np.log10(nu_break), np.log10(Tx), np.log10(Te), np.log10(nu_t)])
+x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
+print(x_ini)
 print(x_ini)
 
 print(nu_min)
 print(nu_max)
-def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, T_e, nu_t):
+def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
     b_temps = []
     global scale_gam_nu, GSPAN
     #print(f"alpha1 is {alpha1}")
@@ -178,10 +178,17 @@ def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, T_e, nu_t):
         # gamma_t = np.sqrt(nu_t/scale_gam_nu)
         # x = nu/nu_c
         integ1, _ = integrate.quad(integrand_for_convex, gama_min, gama_break, args = (alpha1, fre))
+        print(f"integ1 = {integ1}")
         integ2, _ = integrate.quad(integrand_for_convex, gama_break, gama_max, args = (alpha2, fre))
+        print(f"integ2 = {integ2}")
+        print(f"nu_t = {nu_t}")
+        print(f"fre = {fre}")
         expo = np.exp(-1*((nu_t/fre)**2.1))
+        print(f"expo = {expo}")
         three = I_x*np.power(fre, -2.1)
-        result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + T_e*(1 - expo)
+        print(f"three = {three}")
+        result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
+        print(f"result = {result}")
         b_temps.append(result)
         
     return result, b_temps
@@ -194,8 +201,8 @@ def chisq(params, xobs, yobs):
     print(f"y error is {yerr}")
     return yerr
 #bounds = ([0,100], [2,3], [2,3], [0, 1e12], [0, 1e-15], [0,5000], [0,1e7])
-
-result = minimize(chisq,args = (frequency, b_temp), x0 = x_ini , method='Nelder-Mead', options={'verbose': 1, 'maxiter': 100000})
+bounds = ([-np.inf, np.inf], [-np.inf, np.inf], [2,3], [2,3], [-np.inf, np.inf], [0,10000],[-np.inf, np.inf])
+result = minimize(chisq,args = (frequency, b_temp), x0 = x_ini , method='Nelder-Mead',bounds = bounds, options={'verbose': 1, 'maxiter': 100000})
 
 
 #a0= [75, 2.5, 2.5, 0.36e9,8.39e-10, 2060, 0.3e6]
@@ -213,6 +220,7 @@ plt.xlabel("log Frequency[MHz]")
 plt.ylabel("log Temp[K]")
 plt.legend()
 plt.title('log Temparature vs log Frequency')
-
+plt.xscale("log")
+plt.yscale("log")
 plt.grid()
 plt.show()
