@@ -13,9 +13,8 @@ import scipy as sp
 #convex shape at pixel 36 and we will use that
 frequency = np.array([22.,45.,150.,408.,1420.,23000.]) #x_values
 frequency = np.array([np.float32(f*10**-3) for f in frequency])
-#b_temp = [9.18573758e+04, 1.77507604e+04, 7.10610657e+02, 6.49989393e+01, 2.11183872e+00, 9.89014738e-04] #y_values
-print(frequency)
-b_temp = np.array([9.18573758e+04, 1.77507604e+04, 7.10610657e+02, 6.49989393e+01, 2.11183872e+00, 9.89014738e-04])
+
+b_temp = np.array([9.18573758e+04, 1.77507604e+04, 7.10610657e+02, 6.49989393e+01, 2.11183872e+00, 9.89014738e-04])#y_values
 
 cvel = 2.99792458e+08 # m s^-1
 m_e = 9.1e-31
@@ -37,7 +36,6 @@ nu_t = 0.001
 nu_break = np.sqrt(0.150*0.408)*1e9
 extn = np.exp(-1.0*np.power((nu_t/frequency[4]),2.1))
 alpha1, alpha2 = 2.6728667075093107, 2.7477254162083455
-GSPAN = 100
 
 nu = 1.420
 nu_min = nu*1e9/GSPAN
@@ -149,12 +147,8 @@ print(f"the parameters are fnorm = {fnorm}, alpha1 = {alpha1}, alpha2 = {alpha2}
 
 x_ini = []
 #x_ini.extend([np.log10(fnorm), np.log(alpha1), np.log10(alpha2), np.log10(nu_break), np.log10(Tx), np.log10(Te), np.log10(nu_t)])
-x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
-print(x_ini)
-print(x_ini)
+x_ini.extend([fnorm, alpha1, alpha2, nu_break/1e6, Tx, Te, nu_t])
 
-print(nu_min)
-print(nu_max)
 def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
     b_temps = []
     global scale_gam_nu, GSPAN
