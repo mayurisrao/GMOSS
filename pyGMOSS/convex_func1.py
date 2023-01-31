@@ -1,6 +1,6 @@
 #apply corrections to 150,408,1420
 #corrections_applied_to = np.array([150,408,1420])
-
+import pdb
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
@@ -13,7 +13,7 @@ import scipy as sp
 #convex shape at pixel 36 and we will use that
 frequency = np.array([22.,45.,150.,408.,1420.,23000.]) #x_values
 frequency = np.array([np.float32(f*10**-3) for f in frequency])
-print(frequency)
+
 
 b_temp = np.array([9.18573758e+04, 1.77507604e+04, 7.10610657e+02, 6.49989393e+01, 2.11183872e+00, 9.89014738e-04])#y_values
 
@@ -56,11 +56,11 @@ def F(x):
         three = ((x**(1/3))*(16+(3*x**2))*gamma(-1/3))/(24*2**(1/3))
         return -one + two -three  
     else:
-        expo = np.exp(-x)/(967458816*np.sqrt(2)*x**(5/3))
+        exponential_term = np.exp(-x)/(967458816*np.sqrt(2)*x**(5/2))
         const = 13*np.sqrt(np.pi)
         quad_term = 2429625 + 2*x*(-1922325 + (5418382*x) + 83221732*(x**2))
-        error_function_term =  119630621+6*np.exp(x)*np.pi*(x**(7/2))+sp.special.erfc(np.sqrt(x))
-        return expo*((const*quad_term) - error_function_term) 
+        error_function_term =  1196306216*np.exp(x)*np.pi*(x**(7/2))*sp.special.erfc(np.sqrt(x))
+        return exponential_term*((const*quad_term) - error_function_term) 
 
 def integrand_for_param(gama, alpha):
     nu_c = (scale_gam_nu * (gama**2))/1e9
@@ -148,18 +148,18 @@ print(f"the parameters are fnorm = {fnorm}, alpha1 = {alpha1}, alpha2 = {alpha2}
 
 x_ini = []
 #x_ini.extend([np.log10(fnorm), np.log(alpha1), np.log10(alpha2), np.log10(nu_break), np.log10(Tx), np.log10(Te), np.log10(nu_t)])
-x_ini.extend([fnorm, alpha1, alpha2, nu_break/1e6, Tx, Te, nu_t])
+x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
 
-#___________________________________##################____________________________##
-
+# #___________________________________##################____________________________##
+# gam_alpha1_terms = []
 # def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
 #     b_temps = []
 #     global scale_gam_nu, GSPAN
 #     gam_alpha1_term  = (gama_break**((2*alpha1) - 3))
-#     #print(f"gam_alpha1_term is {gam_alpha1_term}")
+#     print(f"gam_alpha1_term is {gam_alpha1_term}")
 #     gam_alpha2_term  = (gama_break**((2*alpha2) - 3))
-#     #print(f"gam_alpha2_term is {gam_alpha2_term}")
-    
+#     print(f"gam_alpha2_term is {gam_alpha2_term}")
+#     #expos = []
     
 #     for fre in nus:
 
@@ -171,17 +171,26 @@ x_ini.extend([fnorm, alpha1, alpha2, nu_break/1e6, Tx, Te, nu_t])
     
 #         three = I_x*np.power(fre, -2.1)
         
-#         result = C_1*(fre**-2)*(gam_alpha1_term*integ1 )*expo 
+#         result = C_1*(fre**-2)*(gam_alpha1_term*integ1)*expo 
 #         #result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
 #         #print(f"result = {result}")
 #         b_temps.append(result)
+        
         
 #     return result, b_temps
 
 
 # xs = np.linspace(22e-3,24,100)
 # _,the_test_array = convex_func(xs, *np.array(x_ini))
+# #print(the_test_array)
+# print(len(the_test_array))
 
+# plt.plot(xs, the_test_array)
+# plt.plot(frequency,b_temp, 'r*')
+# plt.plot(frequency,b_temp)
+# plt.xscale('log')
+# plt.yscale('log')
+# plt.show()
 
 
 
@@ -230,11 +239,11 @@ def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
 def chisq(params, xobs, yobs):
     _, ynew = convex_func(xobs, *params)
     #yerr = np.sum((ynew- yobs)**2)
-    yerr = np.nansum(((yobs- ynew)/ynew)**2)
+    yerr = np.sum(((yobs- ynew)/ynew)**2)
     print(f"y error is {yerr}")
     return yerr
 #bounds = ([0,100], [2,3], [2,3], [0, 1e12], [0, 1e-15], [0,5000], [0,1e7])
-bounds = ([-np.inf, np.inf], [-np.inf, np.inf], [2,3], [2,3], [-np.inf, np.inf], [0,10000],[-np.inf, np.inf])
+bounds = ([-np.inf, np.inf], [2,3], [2,3], [0.001, np.inf], [0.001,10000],[0.001, np.inf])
 result = minimize(chisq,args = (frequency, b_temp), x0 = x_ini , method='Nelder-Mead',bounds = bounds, options={'verbose': 1, 'maxiter': 100000})
 
 
@@ -256,4 +265,5 @@ plt.title('log Temparature vs log Frequency')
 plt.xscale("log")
 plt.yscale("log")
 plt.grid()
+print(yinitial)
 plt.show()
