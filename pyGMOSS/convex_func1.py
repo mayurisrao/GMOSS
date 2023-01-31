@@ -13,6 +13,7 @@ import scipy as sp
 #convex shape at pixel 36 and we will use that
 frequency = np.array([22.,45.,150.,408.,1420.,23000.]) #x_values
 frequency = np.array([np.float32(f*10**-3) for f in frequency])
+print(frequency)
 
 b_temp = np.array([9.18573758e+04, 1.77507604e+04, 7.10610657e+02, 6.49989393e+01, 2.11183872e+00, 9.89014738e-04])#y_values
 
@@ -149,6 +150,44 @@ x_ini = []
 #x_ini.extend([np.log10(fnorm), np.log(alpha1), np.log10(alpha2), np.log10(nu_break), np.log10(Tx), np.log10(Te), np.log10(nu_t)])
 x_ini.extend([fnorm, alpha1, alpha2, nu_break/1e6, Tx, Te, nu_t])
 
+#___________________________________##################____________________________##
+
+# def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
+#     b_temps = []
+#     global scale_gam_nu, GSPAN
+#     gam_alpha1_term  = (gama_break**((2*alpha1) - 3))
+#     #print(f"gam_alpha1_term is {gam_alpha1_term}")
+#     gam_alpha2_term  = (gama_break**((2*alpha2) - 3))
+#     #print(f"gam_alpha2_term is {gam_alpha2_term}")
+    
+    
+#     for fre in nus:
+
+#         integ1, _ = integrate.quad(integrand_for_convex, gama_min, gama_break, args = (alpha1, fre))
+     
+#         integ2, _ = integrate.quad(integrand_for_convex, gama_break, gama_max, args = (alpha2, fre))
+
+#         expo = np.exp(-1*((nu_t/fre)**2.1))
+    
+#         three = I_x*np.power(fre, -2.1)
+        
+#         result = C_1*(fre**-2)*(gam_alpha1_term*integ1 )*expo 
+#         #result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
+#         #print(f"result = {result}")
+#         b_temps.append(result)
+        
+#     return result, b_temps
+
+
+# xs = np.linspace(22e-3,24,100)
+# _,the_test_array = convex_func(xs, *np.array(x_ini))
+
+
+
+
+
+
+
 def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
     b_temps = []
     global scale_gam_nu, GSPAN
@@ -189,9 +228,9 @@ def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
 
 #Defining chi_square function
 def chisq(params, xobs, yobs):
-    ynew, _ = convex_func(xobs, *params)
+    _, ynew = convex_func(xobs, *params)
     #yerr = np.sum((ynew- yobs)**2)
-    yerr = np.sum(((yobs- ynew)/ynew)**2)
+    yerr = np.nansum(((yobs- ynew)/ynew)**2)
     print(f"y error is {yerr}")
     return yerr
 #bounds = ([0,100], [2,3], [2,3], [0, 1e12], [0, 1e-15], [0,5000], [0,1e7])
