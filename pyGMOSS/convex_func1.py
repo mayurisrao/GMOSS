@@ -1,5 +1,6 @@
 #apply corrections to 150,408,1420
 #corrections_applied_to = np.array([150,408,1420])
+#in the convex_func the integration is being done in the gama space that is the lorentz factor space.
 import pdb
 import numpy as np
 import matplotlib.pyplot as plt
@@ -151,7 +152,7 @@ x_ini = []
 x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
 
 # #___________________________________##################____________________________##
-# gam_alpha1_terms = []
+
 # def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
 #     b_temps = []
 #     global scale_gam_nu, GSPAN
@@ -170,9 +171,12 @@ x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
 #         expo = np.exp(-1*((nu_t/fre)**2.1))
     
 #         three = I_x*np.power(fre, -2.1)
-        
-#         result = C_1*(fre**-2)*(gam_alpha1_term*integ1)*expo 
-#         #result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
+#         #result = integ2
+#         #result = C_1*(three)*expo + Te*(1 - expo)  # term 3 + term 4
+#         #result = Te*(1 - expo)        
+#         #result = C_1*(three)*expo 
+#         #result = C_1*((fre**-2)*(gam_alpha2_term*integ2 + gam_alpha2_term*integ2))* expo
+#         result = C_1*((fre**-2)*(gam_alpha1_term*integ1) + three)* expo + Te*(1 - expo)
 #         #print(f"result = {result}")
 #         b_temps.append(result)
         
@@ -182,7 +186,7 @@ x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
 
 # xs = np.linspace(22e-3,24,100)
 # _,the_test_array = convex_func(xs, *np.array(x_ini))
-# #print(the_test_array)
+# print(the_test_array)
 # print(len(the_test_array))
 
 # plt.plot(xs, the_test_array)
@@ -229,7 +233,8 @@ def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
         #print(f"expo = {expo}")
         three = I_x*np.power(fre, -2.1)
         #print(f"three = {three}")
-        result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
+        #result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
+        result = C_1*((fre**-2)*(gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
         print(f"result = {result}")
         b_temps.append(result)
         
@@ -243,8 +248,8 @@ def chisq(params, xobs, yobs):
     print(f"y error is {yerr}")
     return yerr
 #bounds = ([0,100], [2,3], [2,3], [0, 1e12], [0, 1e-15], [0,5000], [0,1e7])
-bounds = ([-np.inf, np.inf], [2,3], [2,3], [0.001, np.inf], [0.001,10000],[0.001, np.inf])
-result = minimize(chisq,args = (frequency, b_temp), x0 = x_ini , method='Nelder-Mead',bounds = bounds, options={'verbose': 1, 'maxiter': 100000})
+bounds = ([-np.inf, np.inf], [2,3], [2,3], [0.001, np.inf],[0.001, np.inf], [0.001,10000],[0.001, np.inf])
+result = minimize(chisq,args = (frequency, b_temp), x0 = x_ini , method='Nelder-Mead',bounds = bounds, options={'verbose': 1, 'maxiter': 10000})
 
 
 
