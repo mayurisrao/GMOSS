@@ -78,23 +78,23 @@ def integrand_for_convex(gama, alpha, nu):
 
 if xl > xb:
     C1 = alpha2
-    I, _ = integrate.quad(integrand_for_param, xl, xb, args = (alpha1))
+    I, _ = integrate.quad(integrand_for_param, xl, xu, args = (alpha1))
     I *= np.power(gama_break, 2*C1-3)
 
 elif xu < xb:
     C1 = alpha1
-    I, _ = integrate.quad(integrand_for_param, xl, xb, args = (alpha2))
+    I, _ = integrate.quad(integrand_for_param, xl, xu, args = (alpha2))
     I *= np.power(gama_break, 2*C1-3)
 
 else:
     xu = xb
     C1 = alpha1
-    I1, _ = integrate.quad(integrand_for_param, xl, xb, args = (alpha1))
+    I1, _ = integrate.quad(integrand_for_param, xl, xu, args = (alpha1))
     I1 *= np.power(gama_break, 2*C1-3)
     xl = xb
     xu = gama_max
     C1 = alpha2
-    I2, _ = integrate.quad(integrand_for_param, xl, xb, args = (alpha2))
+    I2, _ = integrate.quad(integrand_for_param, xl, xu, args = (alpha2))
     I2 *= np.power(gama_break, 2*C1-3)
     I = I1 + I2
 
@@ -118,23 +118,23 @@ xu = gama_max
 
 if xl > xb:
     C1 = alpha2
-    I, _ = integrate.quad(integrand_for_param, xl,xb, args = (alpha1))
+    I, _ = integrate.quad(integrand_for_param, xl,xu, args = (alpha1))
     I *= np.power(gama_break, 2*C1-3)
 
 elif xu < xb:
     C1 = alpha1
-    I, _ = integrate.quad(integrand_for_param, xl,xb, args = (alpha2))
+    I, _ = integrate.quad(integrand_for_param, xl,xu, args = (alpha2))
     I *= np.power(gama_break, 2*C1-3)
 
 else:
     xu = xb
     C1 = alpha1
-    I1, _ = integrate.quad(integrand_for_param, xl,xb, args = (alpha1))
+    I1, _ = integrate.quad(integrand_for_param, xl,xu, args = (alpha1))
     I1 *= np.power(gama_break, 2*C1-3)
     xl = xb
     xu = gama_max
     C1 = alpha2
-    I2, _ = integrate.quad(integrand_for_param, xl,xb, args = (alpha2))
+    I2, _ = integrate.quad(integrand_for_param, xl,xu, args = (alpha2))
     I2 *= np.power(gama_break, 2*C1-3)
     I = I1 + I2
 
@@ -151,7 +151,7 @@ x_ini = []
 #x_ini.extend([np.log10(fnorm), np.log(alpha1), np.log10(alpha2), np.log10(nu_break), np.log10(Tx), np.log10(Te), np.log10(nu_t)])
 x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
 
-# #___________________________________##################____________________________##
+#___________________________________##################____________________________##
 
 # def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
 #     b_temps = []
@@ -171,12 +171,12 @@ x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
 #         expo = np.exp(-1*((nu_t/fre)**2.1))
     
 #         three = I_x*np.power(fre, -2.1)
-#         #result = integ2
+#         #result = integ1
 #         #result = C_1*(three)*expo + Te*(1 - expo)  # term 3 + term 4
 #         #result = Te*(1 - expo)        
 #         #result = C_1*(three)*expo 
-#         #result = C_1*((fre**-2)*(gam_alpha2_term*integ2 + gam_alpha2_term*integ2))* expo
-#         result = C_1*((fre**-2)*(gam_alpha1_term*integ1) + three)* expo + Te*(1 - expo)
+#         result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2))* expo
+#         #result = C_1*((fre**-2)*(gam_alpha1_term*integ1) + three)* expo + Te*(1 - expo)
 #         #print(f"result = {result}")
 #         b_temps.append(result)
         
@@ -199,7 +199,7 @@ x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
 
 
 
-
+'''
 
 def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
     b_temps = []
@@ -234,7 +234,7 @@ def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
         three = I_x*np.power(fre, -2.1)
         #print(f"three = {three}")
         #result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
-        result = C_1*((fre**-2)*(gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
+        result = C_1*((fre**-2)*(gam_alpha1_term*integ1 ) + three)* expo + Te*(1 - expo)
         print(f"result = {result}")
         b_temps.append(result)
         
@@ -272,3 +272,4 @@ plt.yscale("log")
 plt.grid()
 print(yinitial)
 plt.show()
+'''
