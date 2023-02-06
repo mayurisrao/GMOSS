@@ -52,7 +52,7 @@ xu = gama_max
 
 def F(x):
     if x<3: 
-        one = (np.pi*x)/3
+        one = (np.pi*x)/np.sqrt(3)
         two =  (9*(x**(11/3))*gamma(-2/3))/(160*2**(2/3)) 
         three = ((x**(1/3))*(16+(3*x**2))*gamma(-1/3))/(24*2**(1/3))
         return -one + two -three  
@@ -150,53 +150,53 @@ print(f"the parameters are fnorm = {fnorm}, alpha1 = {alpha1}, alpha2 = {alpha2}
 x_ini = []
 #x_ini.extend([np.log10(fnorm), np.log(alpha1), np.log10(alpha2), np.log10(nu_break), np.log10(Tx), np.log10(Te), np.log10(nu_t)])
 x_ini.extend([fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t])
-
+print(x_ini)
 #___________________________________##################____________________________##
 
-def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
-    b_temps = []
-    global scale_gam_nu, GSPAN
-    gam_alpha1_term  = (gama_break**((2*alpha1) - 3))
-    print(f"gam_alpha1_term is {gam_alpha1_term}")
-    gam_alpha2_term  = (gama_break**((2*alpha2) - 3))
-    print(f"gam_alpha2_term is {gam_alpha2_term}")
-    #expos = []
+# def convex_func(nus, C_1, alpha1, alpha2, nu_break, I_x, Te, nu_t):
+#     b_temps = []
+#     global scale_gam_nu, GSPAN
+#     gam_alpha1_term  = (gama_break**((2*alpha1) - 3))
+#     print(f"gam_alpha1_term is {gam_alpha1_term}")
+#     gam_alpha2_term  = (gama_break**((2*alpha2) - 3))
+#     print(f"gam_alpha2_term is {gam_alpha2_term}")
+#     #expos = []
     
-    for fre in nus:
+#     for fre in nus:
 
-        integ1, _ = integrate.quad(integrand_for_convex, gama_min, gama_break, args = (alpha1, fre))
+#         integ1, _ = integrate.quad(integrand_for_convex, gama_min, gama_break, args = (alpha1, fre))
      
-        integ2, _ = integrate.quad(integrand_for_convex, gama_break, gama_max, args = (alpha2, fre))
+#         integ2, _ = integrate.quad(integrand_for_convex, gama_break, gama_max, args = (alpha2, fre))
 
-        expo = np.exp(-1*((nu_t/fre)**2.1))
+#         expo = np.exp(-1*((nu_t/fre)**2.1))
     
-        three = I_x*np.power(fre, -2.1)
-        #result  = np.power(fre, -2.1)
-        #result = expo 
-        #result = integ1
-        #result = C_1*(three)*expo + Te*(1 - expo)  # term 3 + term 4
-        #result = Te*(1 - expo)        
-        result = C_1*(three)*expo 
-        #result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2))* expo
-        #result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
-        #print(f"result = {result}")
-        b_temps.append(result)
+#         three = I_x*np.power(fre, -2.1)
+#         #result  = np.power(fre, -2.1)
+#         #result = expo 
+#         #result = integ1
+#         #result = C_1*(three)*expo + Te*(1 - expo)  # term 3 + term 4
+#         #result = Te*(1 - expo)        
+#         result = C_1*(three)*expo 
+#         #result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2))* expo
+#         #result = C_1*((fre**-2)*(gam_alpha1_term*integ1 + gam_alpha2_term*integ2) + three)* expo + Te*(1 - expo)
+#         #print(f"result = {result}")
+#         b_temps.append(result)
         
         
-    return result, b_temps
+#     return result, b_temps
 
 
-xs = np.linspace(22e-3,24,100)
-_,the_test_array = convex_func(xs, *np.array(x_ini))
-print(the_test_array)
-print(len(the_test_array))
+# xs = np.linspace(22e-3,24,100)
+# _,the_test_array = convex_func(xs, *np.array(x_ini))
+# print(the_test_array)
+# print(len(the_test_array))
 
-plt.plot(xs, the_test_array)
-#plt.plot(frequency,b_temp, 'r*')
-plt.plot(frequency,b_temp)
-plt.xscale('log')
-plt.yscale('log')
-plt.show()
+# plt.plot(xs, the_test_array)
+# #plt.plot(frequency,b_temp, 'r*')
+# plt.plot(frequency,b_temp)
+# plt.xscale('log')
+# plt.yscale('log')
+# plt.show()
 
 
 
