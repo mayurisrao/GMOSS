@@ -16,13 +16,13 @@ def check_concave_convex(DATA: str, data_filename: str) -> pd.DataFrame:
     df: pandas.DataFrame of pixel number, alpha 1, alpha 2 and convexity/concavity flag.
     """
     
-    df = pd.read_csv(f"{DATA}{data_filename}")
+    df = pd.read_csv(data_filename)
     n_pixels = len(df)
 
     convexity_list = []
     for pixel in range(n_pixels):
         convexity = {}
-        convexity["PIXEL"] = pixel
+        convexity["PIXEL"] = pixel + 1
         print(f"Pixel Number: {pixel}")
 
         freq_45_in_GHz = 45 * 1e-3
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     load_dotenv()
     DATA = os.environ.get("DATA")
-    data_filename = "brightness_temp_per_pixel.csv"
+    data_filename = "brightness_temp_at_pixel.csv"
 
     df = check_concave_convex(DATA, data_filename)
     df.to_csv(f"{DATA}convexity.csv", index = False)
