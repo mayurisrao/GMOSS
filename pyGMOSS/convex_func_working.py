@@ -7,6 +7,7 @@ import scipy.special as special
 import scipy.integrate as integrate
 import math
 import scipy as sp
+import pandas as pd
 
 frequency = np.array([22.,45.,150.,408.,1420.,23000.]) #x_values
 frequency = np.array([np.float32(f*10**-3) for f in frequency])
@@ -23,11 +24,24 @@ sin_alph = 1.0
 Bmag = 1e-9 # Tesla == 10 micro-Gauss
 scale_gam_nu = (3.0*q_e*Bmag*sin_alph)/(4.0*np.pi*m_e*cvel)
 
+df = pd.read_csv("brightness_temp_at_pixel.csv")
+frequency = np.array([22.,45.,150.,408.,1420.,23000.]) #x_values
+frequency_string = np.array(["22", "45", "150", "408", "1420", "23000"])
+b_temp = np.zeros(len(frequency_string))
+
+
+df = pd.read_csv("brightness_temp_at_pixel.csv")
+initial_arguments_df = pd.read_csv("convex_model_initial_params.csv")
+df = pd.merge(df, initial_arguments_df, on = "PIXEL", how = "right")
+
+for i, f in enumerate(frequency_string):
+    b_temp[i] = df.loc[df.loc[:, "PIXEL"] == pixel, f"{f}MHz"]
+
 #x_ini = np.array([ 9.13659851e-07,  9.66942286e+00,  2.00531364e+00,  8.86653501e+01,
 #        -3.66142917e-10,  9.99999996e+03,  1.19717340e-02])
 #x_ini = np.array([ -1.976754550046829e-07, 2.6728667075093107, 2.7477254162083455, 247386337.5370596/1e9, 1e-10, 8000.0, 0.001])
-#x_ini = np.array([-5.761185054330454e-08, 2.6728667075093107, 2.7477254162083455, 247386337.5370596/1e9, 1e-10, 8000.0, 0.001]) #working
-x_ini = np.array([-5.766426064650115e-08, 2.6728667075093107, 2.7477254162083455, 247386337.5370596/1e9, 1e-10, 8000.0, 0.001]) # broken leg
+#x_ini = np.array([-5.761185054330454e-08, 2.6728667075093107, 2.7477254162083455, 247386337.5370596/1e9, 1e-10, 8000.0, 0.001]) #working pix 36
+x_ini = np.array([-5.766426064650115e-08, 2.6728667075093107, 2.7477254162083455, 247386337.5370596/1e9, 1e-10, 8000.0, 0.001]) # broken leg pix 36
 #x_ini = np.array([ -6.928880, 2.6728667075093107, 2.7477254162083455, 247.3863375370596, 1e-10, 8000.0, 0.001])
 
 def F(x):

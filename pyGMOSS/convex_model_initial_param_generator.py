@@ -45,6 +45,7 @@ for pixel in pixels:
 
 
 
+
 # frequency = np.array([22.,45.,150.,408.,1420.,23000.]) #x_values
 # frequency = np.array([np.float32(f*10**-3) for f in frequency])
 
