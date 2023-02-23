@@ -7,7 +7,7 @@ import scipy as sp
 
 class ConvexModelInitialParameters:
     """
-    Takes the brightness temparature and convex pixels files and outputs initial parameters for the convex model
+    Takes the brightness temparature and convex pixels files and outputs initial parameters for the convex model.
 
     Parameters:
     ---------------
@@ -15,7 +15,6 @@ class ConvexModelInitialParameters:
         Path to folder where the brightness temparature (CSV) file is located with column names [PIXEL,1420MHz,150MHz,22MHz,23000MHz,408MHz,45MHz]
     path_to_convexity_file : str
         Path to the folder where the convexity file (CSV) is located with column names [PIXEL,ALPHA_1,ALPHA_2,Concave/Convex]
-    verbose: bool
     speed_of_light: float, optional
     mass_of_electron: float, optional
     charge_of_electron: float, optional
