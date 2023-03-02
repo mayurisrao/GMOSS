@@ -3,23 +3,36 @@ import pandas as pd
 from scipy.optimize import minimize, Bounds
 import matplotlib.pyplot as plt
 
-class ConcaveModel:
-    def __init__(self, DATA):
-        self.T_e = 8000
-        self.nu_t = 0.001
-        self.DATA = DATA
-        self.brightness_temperature_df = pd.read_csv(f"{self.DATA}brightness_temp_per_pixel.csv")
-        self.convexity_df = pd.read_csv(f"{self.DATA}convexity.csv")
-        self.frequencies_string = np.array(["22", "45", "150", "408", "1420", "23000"]) # MHz
-        self.frequencies = np.array([22, 45, 150, 408, 1420, 23000]) # MHz
-        self.frequencies = self.frequencies * 1e-3 # GHz
-        self.df = pd.merge(self.brightness_temperature_df, self.convexity_df, on = "PIXEL")
-        self.df_concave = self.df.loc[self.df.loc[:, "Concave/Convex"] == "Concave", :]
-        self.df_concave.reset_index(inplace =  True, drop = True)
-        self.pixels = self.df_concave.loc[:, "PIXEL"]
-        self.df_concave.set_index("PIXEL", inplace = True)
 
-    def concave_func(self, x, C_1, C_2, alpha_1, alpha_2, I_x, nu_t, T_e): 
+class ConcaveModel:
+    def __init__(
+        self,
+        path_to_brightness_temperature_file: str,
+        path_to_convexity_file: str,
+        T_e: float = 8000,
+        nu_t: float = 0.001,
+    ):
+
+        self.T_e = T_e
+        self.nu_t = nu_t
+        self.brightness_temperature_df = pd.read_csv(
+            path_to_brightness_temperature_file
+        )
+        self.convexity_df = pd.read_csv(path_to_convexity_file)
+        self.frequencies_string = np.array(
+            ["22", "45", "150", "408", "1420", "23000"]
+        )  # MHz
+        self.frequencies = np.array([22, 45, 150, 408, 1420, 23000])  # MHz
+        self.frequencies = self.frequencies * 1e-3  # GHz
+        self.df = pd.merge(
+            self.brightness_temperature_df, self.convexity_df, on="PIXEL"
+        )
+        self.df_concave = self.df.loc[self.df.loc[:, "Concave/Convex"] == "Concave", :]
+        self.df_concave.reset_index(inplace=True, drop=True)
+        self.pixels = self.df_concave.loc[:, "PIXEL"]
+        self.df_concave.set_index("PIXEL", inplace=True)
+
+    def concave_func(self, x, C_1, C_2, alpha_1, alpha_2, I_x, nu_t, T_e):
         one = np.power(x, -alpha_1)
         two = (C_2 / C_1) * np.power(x, -alpha_2)
         three = I_x * np.power(x, -2.1)
@@ -28,10 +41,9 @@ class ConcaveModel:
         eqn_two = T_e * (1 - expo)
         return eqn_one + eqn_two
 
-
     def chisq(self, params, xobs, yobs):
         ynew = self.concave_func(xobs, *params)
-        yerr = np.sum(((yobs- ynew)/ynew)**2)
+        yerr = np.sum(((yobs - ynew) / ynew) ** 2)
         return yerr
 
     def fit(self):
@@ -42,23 +54,46 @@ class ConcaveModel:
 
             self.b_temp = np.array([])
             for f in self.frequencies_string:
-                self.b_temp = np.append(self.b_temp, self.df_concave.loc[pixel, f"{f}MHz"])
-            
+                self.b_temp = np.append(
+                    self.b_temp, self.df_concave.loc[pixel, f"{f}MHz"]
+                )
+
             alpha_1 = self.df.loc[pixel, "ALPHA_1"]
             alpha_2 = self.df.loc[pixel, "ALPHA_2"]
 
             fnorm1 = self.b_temp[2] / np.power(self.frequencies[2], -1 * alpha_1)
-            fnorm2 = (self.b_temp[3] / np.power(self.frequencies[3], -1 * alpha_2)) / fnorm1
+            fnorm2 = (
+                self.b_temp[3] / np.power(self.frequencies[3], -1 * alpha_2)
+            ) / fnorm1
             extn = np.exp(-1 * np.power(self.nu_t / self.frequencies[5], 2.1))
-            T_x = (1. / np.power(self.frequencies[5], -2.1)) * ((self.b_temp[5] - self.T_e * (1. - extn)) / (fnorm1 * extn)) - ((np.power(self.frequencies[5], -1. * alpha_1)) + (fnorm2 * np.power(self.frequencies[5], -1. * alpha_2)))
+            T_x = (1.0 / np.power(self.frequencies[5], -2.1)) * (
+                (self.b_temp[5] - self.T_e * (1.0 - extn)) / (fnorm1 * extn)
+            ) - (
+                (np.power(self.frequencies[5], -1.0 * alpha_1))
+                + (fnorm2 * np.power(self.frequencies[5], -1.0 * alpha_2))
+            )
 
             if T_x <= 0:
                 T_x = 1e-10
-            
-            x0 = [fnorm1, fnorm2, alpha_1, alpha_2, T_x, self.nu_t, self.T_e]
-            bounds = ((-np.inf, np.inf), (-np.inf, np.inf), (2,3), (2,3), (-np.inf, np.inf), (-np.inf, np.inf), (0,10000))
 
-            self.result = minimize(self.chisq, args = (self.frequencies, self.b_temp), x0 = x0, method = "Nelder-Mead", bounds = bounds)
+            x0 = [fnorm1, fnorm2, alpha_1, alpha_2, T_x, self.nu_t, self.T_e]
+            bounds = (
+                (-np.inf, np.inf),
+                (-np.inf, np.inf),
+                (2, 3),
+                (2, 3),
+                (-np.inf, np.inf),
+                (-np.inf, np.inf),
+                (0, 10000),
+            )
+
+            self.result = minimize(
+                self.chisq,
+                args=(self.frequencies, self.b_temp),
+                x0=x0,
+                method="Nelder-Mead",
+                bounds=bounds,
+            )
 
             to_save["PIXEL"] = pixel
             to_save["FNORM1"] = self.result.x[0]
@@ -82,7 +117,7 @@ if __name__ == "__main__":
     DATA = os.environ.get("DATA")
 
     x = np.linspace(-300, 24000, 1000) * 1e-3
-    model = ConcaveModel(DATA)
+    model = ConcaveModel(f"{DATA}brightness_temperature.csv", f"{DATA}convexity.csv")
     df = model.fit()
 
-    df.to_csv(f"{DATA}concave_pixel_fits.csv", index = False)
+    df.to_csv(f"{DATA}concave_pixel_fits.csv", index=False)
