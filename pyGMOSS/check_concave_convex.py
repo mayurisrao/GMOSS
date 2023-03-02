@@ -23,7 +23,7 @@ def check_concave_convex(path_to_brightness_temperature_file: str) -> pd.DataFra
     for pixel in range(n_pixels):
         convexity = {}
         convexity["PIXEL"] = pixel + 1
-        print(f"Pixel Number: {pixel}")
+        print(f"Pixel Number: {pixel+1}")
 
         freq_45_in_GHz = 45 * 1e-3
         b_temp_45_list = df.loc[:, "45MHz"]
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     load_dotenv()
     DATA = os.getenv("DATA")
-    path_to_brightness_temperature_file = "brightness_temp_at_pixel.csv"
+    path_to_brightness_temperature_file = DATA + "brightness_temp_per_pixel.csv"
 
     df = check_concave_convex(path_to_brightness_temperature_file)
     df.to_csv(f"{DATA}convexity.csv", index=False)

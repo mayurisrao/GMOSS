@@ -117,7 +117,7 @@ if __name__ == "__main__":
     DATA = os.environ.get("DATA")
 
     x = np.linspace(-300, 24000, 1000) * 1e-3
-    model = ConcaveModel(f"{DATA}brightness_temperature.csv", f"{DATA}convexity.csv")
+    model = ConcaveModel(f"{DATA}brightness_temp_per_pixel.csv", f"{DATA}convexity.csv")
     df = model.fit()
 
     df.to_csv(f"{DATA}concave_pixel_fits.csv", index=False)
