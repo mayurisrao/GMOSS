@@ -30,7 +30,6 @@ class ConcaveModel:
         self.df_concave = self.df.loc[self.df.loc[:, "Concave/Convex"] == "Concave", :]
         self.df_concave.reset_index(inplace=True, drop=True)
         self.pixels = self.df_concave.loc[:, "PIXEL"]
-        self.df_concave.set_index("PIXEL", inplace=True)
 
     def concave_func(self, x, C_1, C_2, alpha_1, alpha_2, I_x, nu_t, T_e):
         one = np.power(x, -alpha_1)
@@ -55,11 +54,18 @@ class ConcaveModel:
             self.b_temp = np.array([])
             for f in self.frequencies_string:
                 self.b_temp = np.append(
-                    self.b_temp, self.df_concave.loc[pixel, f"{f}MHz"]
+                    self.b_temp,
+                    self.df_concave.loc[
+                        self.df_concave.loc[:, "PIXEL"] == pixel, f"{f}MHz"
+                    ],
                 )
 
-            alpha_1 = self.df.loc[pixel, "ALPHA_1"]
-            alpha_2 = self.df.loc[pixel, "ALPHA_2"]
+            alpha_1 = self.df_concave.loc[
+                self.df_concave.loc[:, "PIXEL"] == pixel, "ALPHA_1"
+            ].values[0]
+            alpha_2 = self.df_concave.loc[
+                self.df_concave.loc[:, "PIXEL"] == pixel, "ALPHA_2"
+            ].values[0]
 
             fnorm1 = self.b_temp[2] / np.power(self.frequencies[2], -1 * alpha_1)
             fnorm2 = (
