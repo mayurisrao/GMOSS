@@ -11,21 +11,21 @@ class ConvexModelInitialParameters:
 
     Parameters:
     ---------------
-    path_to_brightness_temparature_file : str
+    - path_to_brightness_temparature_file : str
         Path to folder where the brightness temparature (CSV) file is located with column names [PIXEL,1420MHz,150MHz,22MHz,23000MHz,408MHz,45MHz]
-    path_to_convexity_file : str
+    - path_to_convexity_file : str
         Path to the folder where the convexity file (CSV) is located with column names [PIXEL,ALPHA_1,ALPHA_2,Concave/Convex]
-    speed_of_light: float, optional
-    mass_of_electron: float, optional
-    charge_of_electron: float, optional
-    sine_alpha: float, optional
-    magnetic_field: float, optional
-    GSPAN: float, optional
-    verbose: bool, optional
+    - speed_of_light: float, optional
+    - mass_of_electron: float, optional
+    - charge_of_electron: float, optional
+    - sine_alpha: float, optional
+    - magnetic_field: float, optional
+    - GSPAN: float, optional
+    - verbose: bool, optional
 
     Returns:
     ---------------
-    df: pandas.DataFrame with [PIXEL,FNORM,ALPHA1,ALPHA2,NU_BREAK,TX,TE,NU_T].
+    df: pandas.DataFrame with initial parameters [PIXEL,FNORM,ALPHA1,ALPHA2,NU_BREAK,TX,TE,NU_T] for the convex model.
     """
 
     def __init__(
@@ -40,7 +40,6 @@ class ConvexModelInitialParameters:
         GSPAN: float = 100.0,
         verbose: bool = False,
     ) -> pd.DataFrame:
-
         self.path_to_brightness_temparature_file = path_to_brightness_temparature_file
         self.path_to_convexity_file = path_to_convexity_file
         self.speed_of_light = speed_of_light

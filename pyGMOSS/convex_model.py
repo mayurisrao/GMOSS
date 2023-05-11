@@ -8,6 +8,36 @@ import scipy as sp
 
 
 class ConvexModel:
+    """
+    This class represents the convex spectral model.
+
+    Parameters
+    ----------
+    - path_to_brightness_temperature_file : str
+        The path to the brightness temperature file.
+    - path_to_convexity_file : str
+        The path to the convexity file.
+    - path_to_initial_parameters_file : str
+        The path to the initial parameters file.
+    - GSPAN : int, optional
+        The GSPAN value (default is 100).
+    - NHPIX : int, optional
+        The number of pixels (default is 3072).
+    - speed_of_light : float, optional
+        The speed of light in meters per second (default is 2.99792458e08).
+    - mass_of_electron : float, optional
+        The mass of the electron in kilograms (default is 9.10938356e-31).
+    - charge_of_electron : float, optional
+        The charge of the electron in coulombs (default is 1.6e-19).
+    - sine_alpha : float, optional
+        The sine of alpha (default is 1.0).
+    - magnetic_field : float, optional
+        The magnetic field in tesla (default is 1e-9).
+    - verbose : bool, optional
+        Whether to output verbose information (default is False).
+
+    """
+
     def __init__(
         self,
         path_to_brightness_temperature_file: str,
@@ -22,7 +52,6 @@ class ConvexModel:
         magnetic_field=1e-9,
         verbose=False,
     ):
-
         self.brightness_temperature_df = pd.read_csv(
             path_to_brightness_temperature_file
         )
@@ -109,7 +138,7 @@ class ConvexModel:
             if xl > xb:
                 C1 = alpha2
                 I, _ = integrate.quad(
-                    self.integrand_for_convex, xl, xu, args=(alpha1, nu)
+                    self.integrand_for_convex, xl, xu, args=(alpha2, nu)
                 )
                 I *= np.power(gama_break, 2 * C1 - 3)
 
@@ -215,11 +244,14 @@ class ConvexModel:
 
         return pd.DataFrame(to_save_list)
 
-    def convex_func(self, parameters):
+    def convex_func(self, parameters, frequencies=None):
         fnorm, alpha1, alpha2, nu_break, Tx, Te, nu_t = parameters
         b_temps = []
 
-        for i in range(len(self.frequencies)):
+        if frequencies == None:
+            frequencies = self.frequencies
+
+        for i in range(len(frequencies)):
             nu = self.frequencies[i]
             nu_min = nu * 1e9 / self.GSPAN
             nu_max = nu * 1e9 * self.GSPAN
@@ -233,7 +265,7 @@ class ConvexModel:
             if xl > xb:
                 C1 = alpha2
                 I, _ = integrate.quad(
-                    self.integrand_for_convex, xl, xu, args=(alpha1, nu)
+                    self.integrand_for_convex, xl, xu, args=(alpha2, nu)
                 )
                 I *= np.power(gama_break, 2 * C1 - 3)
 

@@ -5,6 +5,17 @@ import matplotlib.pyplot as plt
 
 
 class ConcaveModel:
+    """A class used to fit a concave model to brightness temperature data.
+
+    Parameters:
+    -------------
+        - path_to_brightness_temperature_file (str): The path to the file containing
+        - brightness temperature data.
+        - path_to_convexity_file (str): The path to the file containing convexity data.
+        - T_e (float): The electron temperature to use in the model (default 8000).
+        - nu_t (float): The frequency of thermal absorbtion turnover (default 0.001).
+    """
+
     def __init__(
         self,
         path_to_brightness_temperature_file: str,
@@ -12,7 +23,6 @@ class ConcaveModel:
         T_e: float = 8000,
         nu_t: float = 0.001,
     ):
-
         self.T_e = T_e
         self.nu_t = nu_t
         self.brightness_temperature_df = pd.read_csv(
@@ -32,6 +42,24 @@ class ConcaveModel:
         self.pixels = self.df_concave.loc[:, "PIXEL"]
 
     def concave_func(self, x, C_1, C_2, alpha_1, alpha_2, I_x, nu_t, T_e):
+        """
+        Calculates the value of the concave spectral model at the given frequency.
+
+        Parameters:
+        -------------
+        x (float): The frequency/frequencies at which to calculate the model.
+        C_1 (float): The first scaling constant.
+        C_2 (float): A parameter of the model.
+        alpha_1 (float): The low frequency spectral index for synchrotron component of the model.
+        alpha_2 (float): The high frequency spectral index for synchrotron component of the model.
+        I_x (float): parameter representing optically thin free free emission index.
+        nu_t (float): The frequecny of thermal absorption turnover.
+        T_e (float): The electron temparature.
+
+        Returns:
+        -------------
+        The value of the concave spectral model at the given frequency.
+        """
         one = np.power(x, -alpha_1)
         two = (C_2 / C_1) * np.power(x, -alpha_2)
         three = I_x * np.power(x, -2.1)
@@ -46,6 +74,38 @@ class ConcaveModel:
         return yerr
 
     def fit(self):
+        """
+        Function Name:
+        -------------
+        `fit()`
+
+        Description:
+        -------------
+        This method fits a concave model to the brightness temperature data for each pixel in the dataset and returns the resulting fitted parameters.
+
+        Parameters:
+        -------------
+        This method takes no parameters.
+
+        Returns:
+        -------------
+        - This method returns a Pandas DataFrame object containing the fitted parameters/optimized for each pixel in the dataset. The DataFrame has the following columns:
+        - `PIXEL`: The pixel number for which the parameters were fitted.
+        - `FNORM1`: The first scaling constant.
+        - `FNORM2`: The second scaling constant.
+        - `ALPHA_1`: The low frequency spectral index.
+        - `ALPHA_2`: The high frequency spectral index.
+        - `T_X`: parameter representing optically thin free free emission index.
+        - `NU_T`: The frequecny of thermal absorption turnover.
+        - `T_E`: The electron temperature.
+
+        Example:
+        ```python
+        model = ConcaveModel("brightness_temperature.csv", "convexity.csv")
+        result_df = model.fit()
+        ```
+        In this example, the `ConcaveModel` is instantiated with the `brightness_temperature.csv` and `convexity.csv` files. Then, the `fit()` method is called to fit the concave model to the data and return a DataFrame containing the fitted parameters. The resulting DataFrame is assigned to the `result_df` variable.
+        """
         to_save_list = []
         for pixel in self.pixels:
             to_save = {}
