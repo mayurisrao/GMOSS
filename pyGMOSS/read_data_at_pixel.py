@@ -103,6 +103,7 @@ def extract_brightness_temp_at_pixel(
         brightness_temperature_list.append(brightness_temperature)
 
     df = pd.DataFrame(brightness_temperature_list)
+    df = df.reindex(columns=["PIXEL", "22MHz", "45MHz", "150MHz", "408MHz", "1420MHz", "23000MHz"])
 
     return df
 
