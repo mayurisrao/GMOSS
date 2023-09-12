@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import glob
-from dotenv import load_dotenv
 import os
 
 
@@ -14,7 +13,9 @@ def extract_brightness_temp_at_pixel(
     tcmb: float,
 ) -> pd.DataFrame:
     """
-    The function extract_brightness_temp_at_pixel the path path to folder containing the data files(all sky maps), number of pixels, offset and scaling corrections,
+    Descrption:
+    ---------------
+    The function extract_brightness_temp_at_pixel takes the path path to folder containing the data files(all sky maps), number of pixels, offset and scaling corrections,
     frequency correction, and a value for tcmb. The function reads data from text files, applies corrections, and extracts brightness temperature data for 6
     different frequencies at each pixel. The extracted data is returned in the form of a pandas DataFrame.
 
@@ -107,6 +108,7 @@ def extract_brightness_temp_at_pixel(
 
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
     PIXELS = 3072
     CORRECTION_150_OFFSET = 21.4
     CORRECTION_150_SCALING = 1.05

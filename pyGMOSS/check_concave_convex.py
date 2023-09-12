@@ -4,10 +4,12 @@ import numpy as np
 
 def check_concave_convex(path_to_brightness_temperature_file: str) -> pd.DataFrame:
     """
+    Description:
+    -------------
     This function checks the concavity/convexity of the spectrum at each pixel using data returned from
     the program "read_data_at_pixel.py". This function takes the path of the brightness temperature data file
     as input, reads the data into a pandas dataframe, and then computes the alpha values and concavity/convexity flags for
-    each pixel. The output is a pandas DataFrame containing the pixel number, alpha 1, alpha 2 and concavity/convexity flag.
+    each pixel. The output is a pandas DataFrame containing the pixel number, alpha1, alpha2 and concavity/convexity flag.
 
     Parameters
     -------------
@@ -16,7 +18,7 @@ def check_concave_convex(path_to_brightness_temperature_file: str) -> pd.DataFra
     Returns
     -------------
     -df: pandas.DataFrame
-     DataFrame containing the pixel number, alpha 1, alpha 2 and concavity/convexity flag.
+     DataFrame containing the pixel number, alpha1, alpha2 and concavity/convexity flag.
 
     Example Usage:
     -------------

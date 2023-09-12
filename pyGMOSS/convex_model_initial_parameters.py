@@ -3,10 +3,18 @@ import pandas as pd
 from scipy.special import gamma
 import scipy.integrate as integrate
 import scipy as sp
+from scipy.special import kve
+from scipy.integrate import quad
 
 
 class ConvexModelInitialParameters:
     """
+    Class Name:
+    -------------
+    ConvexModelInitialParameters
+
+    Description:
+    -------------
     Takes the brightness temparature and convex pixels files and outputs initial parameters for the convex model.
 
     Parameters:
@@ -54,28 +62,14 @@ class ConvexModelInitialParameters:
             3.0 * self.charge_of_electron * self.magnetic_field * self.sine_alpha
         ) / (4.0 * np.pi * self.mass_of_electron * self.speed_of_light)
 
-    def F(self, x):
-        if x < 3:
-            one = (np.pi * x) / np.sqrt(3)
-            two = (9 * (x ** (11 / 3)) * gamma(-2 / 3)) / (160 * 2 ** (2 / 3))
-            three = ((x ** (1 / 3)) * (16 + (3 * x**2)) * gamma(-1 / 3)) / (
-                24 * 2 ** (1 / 3)
-            )
-            return -one + two - three
-        else:
-            exponential_term = np.exp(-x) / (967458816 * np.sqrt(2) * x ** (5 / 2))
-            const = 13 * np.sqrt(np.pi)
-            quad_term = 2429625 + 2 * x * (
-                -1922325 + (5418382 * x) + 83221732 * (x**2)
-            )
-            error_function_term = (
-                1196306216
-                * np.exp(x)
-                * np.pi
-                * (x ** (7 / 2))
-                * sp.special.erfc(np.sqrt(x))
-            )
-            return exponential_term * ((const * quad_term) - error_function_term)
+    def modbessik2(self, u):  # can take in an array or an integer
+        xnu = 5.0 / 3.0
+        ORDER = xnu
+        N = 1
+        ARG = np.divide(1, u)
+        BK = kve(ORDER, ARG)
+        xrk = BK / np.exp(ARG)
+        return np.divide(xrk, (u * u))
 
     def integrand_for_param(self, gama, alpha, nu):
         nu_c = (self.scale_gam_nu * (gama**2)) / 1e9
@@ -83,7 +77,55 @@ class ConvexModelInitialParameters:
         integrand_ = self.F(x) * x * np.power(gama, -1 * (2 * alpha - 3))
         return integrand_
 
+    def fofx1(self, gamafloat, nu, C1):
+        gama = float(gamafloat)
+        nu_c = (gama * gama * self.scale_gam_nu) / 1.0e9
+        x = nu / nu_c
+        xl = 0.0
+        xu = 1 / x
+        rint, _ = quad(self.modbessik2, xl, xu)
+        p1 = (2 * C1) - 3.0
+        integ = rint * (gama ** (-1.0 * p1)) * x
+        return integ
+
     def convex_model_initial_parameter_generator(self):
+        """
+        Function Name:
+        -------------
+        "convex_model_initial_parameter_generator()"
+
+        Description:
+        -------------
+        This method generates the initial parameters for the convex model.
+
+        Parameters:
+        -------------
+        This method takes no parameters.
+
+        Returns:
+        -------------
+        - This method returns a DataFrame with the initial(to be optimized) parameters.
+          The DataFrame has the following columns:
+        - "PIXEL": The pixel number for which the parameters will be fitted.
+        - "FNORM": initial scaling/normalization parameter.
+        - "ALPHA1": initial low frequency spectral index parameter.
+        - "ALPHA2": initial high frequency spectral index parameter.
+        - "NU_BREAK": initial break frequency parameter.
+        - "TX": initial parameter representing optically thin free free emission index.
+        - "TE": electron temparature initial parameter.
+        - "NU_T": frequecny of thermal absorption turnover initial paramter.
+
+        Example:
+        -------------
+        ```python
+        convex_model_initial_parameters = ConvexModelInitialParameters("brightness_temp.csv", "convexity.csv", verbose=True)
+        result_df = convex_model_initial_parameters.convex_model_initial_parameter_generator()
+        df.to_csv("convex_model_initial_parameters.csv")
+        ```
+        In this example, the "ConvexModelInitialParameters" class is instantiated with the "brightness_temperature.csv" and "convexity.csv". Then, the 'convex_model_initial_parameter_generator'
+        method is called to generate the initial parameters. The resulting DataFrame is assigned to the 'result_df' variable which is later converted to a csv file using
+        'to_csv' function.
+        """
         df = pd.read_csv(self.path_to_brightness_temparature_file)
         convexity_df = pd.read_csv(self.path_to_convexity_file)
 
@@ -131,43 +173,33 @@ class ConvexModelInitialParameters:
 
             if xl > xb:
                 C1 = alpha2
-                I, _ = integrate.quad(
-                    self.integrand_for_param, xl, xu, args=(alpha1, nu)
-                )
-                I *= np.power(gama_break, 2 * C1 - 3)
+                rint, _ = sp.integrate.quad(self.fofx1, xl, xu, args=(nu, C1))
+                rint *= gama_break ** (2 * C1 - 3)
 
             elif xu < xb:
                 C1 = alpha1
-                I, _ = integrate.quad(
-                    self.integrand_for_param, xl, xu, args=(alpha2, nu)
-                )
-                I *= np.power(gama_break, 2 * C1 - 3)
+                rint, _ = sp.integrate.quad(self.fofx1, xl, xu, args=(nu, C1))
+                rint *= gama_break ** (2 * C1 - 3)
 
             else:
                 xu = xb
                 C1 = alpha1
-                I1, _ = integrate.quad(
-                    self.integrand_for_param, xl, xu, args=(alpha1, nu)
-                )
-                I1 *= np.power(gama_break, 2 * C1 - 3)
+                rint1, _ = sp.integrate.quad(self.fofx1, xl, xu, args=(nu, C1))
+                rint1 *= gama_break ** (2 * C1 - 3)
                 xl = xb
                 xu = gama_max
                 C1 = alpha2
-                I2, _ = integrate.quad(
-                    self.integrand_for_param, xl, xu, args=(alpha2, nu)
-                )
-                I2 *= np.power(gama_break, 2 * C1 - 3)
-                I = I1 + I2
+                rint2, _ = sp.integrate.quad(self.fofx1, xl, xu, args=(nu, C1))
+                rint2 *= gama_break ** (2 * C1 - 3)
+                rint = rint1 + rint2
 
             fnorm = (b_temp[4] - (Te * (1.0 - extn))) / (
-                (np.power(nu, -2.0) * I) * extn
+                (np.power(nu, -2.0) * float(rint)) * extn
             )
 
             nu = 22.690
             nu_min = nu * 1e9 / self.GSPAN
-
             nu_max = nu * 1e9 * self.GSPAN
-
             gama_min = np.sqrt((nu_min) / self.scale_gam_nu)
             gama_max = np.sqrt((nu_max) / self.scale_gam_nu)
             gama_break = np.sqrt((nu_break) / self.scale_gam_nu)
@@ -178,39 +210,32 @@ class ConvexModelInitialParameters:
 
             if xl > xb:
                 C1 = alpha2
-                I, _ = integrate.quad(
-                    self.integrand_for_param, xl, xu, args=(alpha1, nu)
-                )
-                I *= np.power(gama_break, 2 * C1 - 3)
+                rint, _ = sp.integrate.quad(self.fofx1, xl, xu, args=(nu, C1))
+                rint *= gama_break ** (2 * C1 - 3)
 
             elif xu < xb:
                 C1 = alpha1
-                I, _ = integrate.quad(
-                    self.integrand_for_param, xl, xu, args=(alpha2, nu)
-                )
-                I *= np.power(gama_break, 2 * C1 - 3)
+                rint, _ = sp.integrate.quad(self.fofx1, xl, xu, args=(nu, C1))
+                rint *= gama_break ** (2 * C1 - 3)
 
             else:
                 xu = xb
                 C1 = alpha1
-                I1, _ = integrate.quad(
-                    self.integrand_for_param, xl, xu, args=(alpha1, nu)
-                )
-                I1 *= np.power(gama_break, 2 * C1 - 3)
+                rint1, _ = sp.integrate.quad(self.fofx1, xl, xu, args=(nu, C1))
+                rint1 *= gama_break ** (2 * C1 - 3)
                 xl = xb
                 xu = gama_max
                 C1 = alpha2
-                I2, _ = integrate.quad(
-                    self.integrand_for_param, xl, xu, args=(alpha2, nu)
-                )
-                I2 *= np.power(gama_break, 2 * C1 - 3)
-                I = I1 + I2
+                rint2, _ = sp.integrate.quad(self.fofx1, xl, xu, args=(nu, C1))
+                rint2 *= gama_break ** (2 * C1 - 3)
+                rint = rint1 + rint2
 
             extn = np.exp(-1.0 * np.power((nu_t / nu), 2.1))
             temp1 = fnorm * extn
 
             Tx = (
-                ((b_temp[5] - Te * (1.0 - extn)) / temp1) - (np.power(nu, -2.0) * I)
+                ((b_temp[5] - Te * (1.0 - extn)) / temp1)
+                - (np.power(nu, -2.0) * float(rint))
             ) / np.power(frequency[4], -2.1)
             if Tx <= 0:
                 Tx = 1.0e-10
@@ -218,7 +243,7 @@ class ConvexModelInitialParameters:
             to_save["FNORM"] = fnorm
             to_save["ALPHA1"] = alpha1
             to_save["ALPHA2"] = alpha2
-            to_save["NU_BREAK"] = nu_break / 1e9
+            to_save["NU_BREAK"] = nu_break
             to_save["TX"] = Tx
             to_save["TE"] = Te
             to_save["NU_T"] = nu_t
@@ -233,7 +258,7 @@ if __name__ == "__main__":
     load_dotenv()
     DATA = os.environ.get("DATA")
     convex_model_initial_parameters = ConvexModelInitialParameters(
-        f"{DATA}brightness_temp_at_pixel.csv", f"{DATA}convexity.csv", verbose=True
+        f"{DATA}brightness_temp_per_pixel.csv", f"{DATA}convexity.csv", verbose=True
     )
     df = convex_model_initial_parameters.convex_model_initial_parameter_generator()
     df.to_csv(f"{DATA}convex_model_initial_parameters.csv")
