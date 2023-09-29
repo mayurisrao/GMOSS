@@ -1,37 +1,21 @@
-arviz @ file:///tmp/build/80754af9/arviz_1614019183254/work
-astropy @ file:///opt/conda/conda-bld/astropy_1657786094003/work
-Bottleneck @ file:///opt/conda/conda-bld/bottleneck_1657175564434/work
-certifi==2022.12.7
-cftime @ file:///home/builder/ci_310/cftime_1640788920991/work
-click @ file:///home/conda/feedstock_root/build_artifacts/click_1666798198223/work
-contourpy @ file:///opt/conda/conda-bld/contourpy_1663827406301/work
-corner @ file:///home/conda/feedstock_root/build_artifacts/corner_1615380253769/work
-cycler @ file:///tmp/build/80754af9/cycler_1637851556182/work
-emcee @ file:///home/conda/feedstock_root/build_artifacts/emcee_1652224790394/work
-fonttools==4.25.0
-kiwisolver @ file:///croot/kiwisolver_1672387140495/work
-matplotlib @ file:///croot/matplotlib-suite_1670466153205/work
-mkl-fft==1.3.1
-mkl-random @ file:///home/builder/ci_310/mkl_random_1641843545607/work
-mkl-service==2.4.0
-munkres==1.1.4
-netCDF4 @ file:///croot/netcdf4_1673455456943/work
-numexpr @ file:///croot/numexpr_1668713893690/work
-numpy @ file:///croot/numpy_and_numpy_base_1672336185480/work
-packaging @ file:///croot/packaging_1671697413597/work
-pandas==1.5.2
-Pillow==9.3.0
-ply==3.11
-pyerfa @ file:///home/builder/ci_310/pyerfa_1640793199719/work
-pyparsing @ file:///opt/conda/conda-bld/pyparsing_1661452539315/work
-PyQt5-sip==12.11.0
-python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
-python-dotenv @ file:///home/conda/feedstock_root/build_artifacts/python-dotenv_1662230030282/work
-pytz @ file:///croot/pytz_1671697431263/work
-PyYAML @ file:///croot/pyyaml_1670514731622/work
-scipy==1.9.3
-sip @ file:///tmp/abs_44cd77b_pu/croots/recipe/sip_1659012365470/work
-six @ file:///tmp/build/80754af9/six_1644875935023/work
-toml @ file:///tmp/build/80754af9/toml_1616166611790/work
-tornado @ file:///opt/conda/conda-bld/tornado_1662061693373/work
-xarray @ file:///croot/xarray_1668776594578/work
+astropy==5.2.2
+contourpy==1.1.1
+cycler==0.12.0
+fonttools==4.43.0
+healpy==1.16.5
+importlib-resources==6.1.0
+kiwisolver==1.4.5
+matplotlib==3.7.3
+numpy==1.24.4
+packaging==23.1
+pandas==2.0.3
+Pillow==10.0.1
+pyerfa==2.0.0.3
+pyparsing==3.1.1
+python-dateutil==2.8.2
+pytz==2023.3.post1
+PyYAML==6.0.1
+scipy==1.10.1
+six==1.16.0
+tzdata==2023.3
+zipp==3.17.0
