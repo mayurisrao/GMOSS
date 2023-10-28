@@ -1,4 +1,4 @@
-# pygmoss
+# pygmoss: python implementation of GMOSS (Global MOdel for the radio Sky Spectrum)
 
 pygmoss is the python implementation of the original GMOSS from the paper [paper](https://export.arxiv.org/abs/1607.07453) by Dr Mayuri Rao et. al. 
 It can be applied to any task that requires the generation of all sky maps in the radio frequency range. It processes input all-sky maps mainly the 6 frequencies 22MHz,45MHz, 150MHz, 406MHz, 1440MHz and 23000MHz. Additional all-sky imput maps can be added as when they are obtained.
