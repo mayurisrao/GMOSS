@@ -88,7 +88,7 @@ class ConvexModelInitialParameters:
         integ = rint * (gama ** (-1.0 * p1)) * x
         return integ
 
-    def convex_model_initial_parameter_generator(self):
+    def convex_model_initial_parameter_generator(self) -> pd.DataFrame:
         """
         Function Name:
         -------------
@@ -132,15 +132,25 @@ class ConvexModelInitialParameters:
         convexity_df = convexity_df.loc[
             convexity_df.loc[:, "Concave/Convex"] == "Convex", :
         ]
+
+        brightness_temperature_cols = df.columns.values
+        brightness_temperature_cols = np.delete(brightness_temperature_cols, 0)
+
+        frequency = np.array([])  # x_values frequency in MHz
+        frequency_string = np.array([])
+        for i in range(len(brightness_temperature_cols)):
+            values = brightness_temperature_cols[i][:-3]
+            frequency_string = np.append(frequency_string, values)
+            frequency = np.append(frequency, float(values))
+
+        frequency = frequency * 1e-3  # GHz
+
         df = pd.merge(df, convexity_df, on="PIXEL", how="right")
         pixels = df.loc[:, "PIXEL"].values
         alpha_1_list = df.loc[:, "ALPHA_1"].values
         alpha_2_list = df.loc[:, "ALPHA_2"].values
 
         # check the units for frequency for calculation of initial_parameters
-        frequency = np.array([22.0, 45.0, 150.0, 408.0, 1420.0, 23000.0])  # x_values
-        frequency *= 1e-3
-        frequency_string = np.array(["22", "45", "150", "408", "1420", "23000"])
 
         b_temp = np.zeros(len(frequency_string))
         to_save_list = []
@@ -152,12 +162,17 @@ class ConvexModelInitialParameters:
 
             to_save["PIXEL"] = pixel
             for i, f in enumerate(frequency_string):
-                b_temp[i] = df.loc[df.loc[:, "PIXEL"] == pixel, f"{f}MHz"]
+                b_temp[i] = float(
+                    df.loc[df.loc[:, "PIXEL"] == pixel, f"{f}MHz"].iloc[0]
+                )
+
+            index_23000 = np.where(frequency_string == "23000")[0][0]
+            index_1420 = np.where(frequency_string == "1420")[0][0]
 
             Te = 8000.0
             nu_t = 0.001
             nu_break = np.sqrt(0.150 * 0.408) * 1e9
-            extn = np.exp(-1.0 * np.power((nu_t / frequency[4]), 2.1))
+            extn = np.exp(-1.0 * np.power((nu_t / frequency[index_1420]), 2.1))
             alpha1, alpha2 = alpha_1_list[idx], alpha_2_list[idx]
 
             nu = 1.420
@@ -193,7 +208,7 @@ class ConvexModelInitialParameters:
                 rint2 *= gama_break ** (2 * C1 - 3)
                 rint = rint1 + rint2
 
-            fnorm = (b_temp[4] - (Te * (1.0 - extn))) / (
+            fnorm = (b_temp[index_1420] - (Te * (1.0 - extn))) / (
                 (np.power(nu, -2.0) * float(rint)) * extn
             )
 
@@ -234,9 +249,9 @@ class ConvexModelInitialParameters:
             temp1 = fnorm * extn
 
             Tx = (
-                ((b_temp[5] - Te * (1.0 - extn)) / temp1)
+                ((b_temp[index_23000] - Te * (1.0 - extn)) / temp1)
                 - (np.power(nu, -2.0) * float(rint))
-            ) / np.power(frequency[4], -2.1)
+            ) / np.power(frequency[index_1420], -2.1)
             if Tx <= 0:
                 Tx = 1.0e-10
 

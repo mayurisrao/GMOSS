@@ -11,11 +11,14 @@ def extract_brightness_temp_at_pixel(
     correction_scale: float,
     correction_at_freq: int,
     tcmb: float,
+    added_freq_in_mhz=[],
+    tcmb_correction_for_added_freq=[],
+    correction_offset_scaling=[],
 ) -> pd.DataFrame:
     """
     Descrption:
     ---------------
-    The function extract_brightness_temp_at_pixel takes the path path to folder containing the data files(all sky maps), number of pixels, offset and scaling corrections,
+    The function extract_brightness_temp_at_pixel takes the path to folder containing the data files(all sky maps), number of pixels, offset and scaling corrections,
     frequency correction, and a value for tcmb. The function reads data from text files, applies corrections, and extracts brightness temperature data for 6
     different frequencies at each pixel. The extracted data is returned in the form of a pandas DataFrame.
 
@@ -27,11 +30,35 @@ def extract_brightness_temp_at_pixel(
     - correction_scale : Scaling to be applied to brightness temperature for frequency correction_at_freq.
     - correction_at_freq : An integer representing the frequency at which corrections to be applied to brightness temperature.
     - tcmb : A float representing the value of tcmb (cosmic microwave background temparature). Recommended value to plugin 2.72548.
+    - added_freq_in_mhz : (optional) By default the paramter is set to an empty list. If one needs to add other all sky maps, the frequency of the
+      the other input all sky map frequencies are provided as a list(of added frequencies) into this parameter.
+    - tcmb_correction_for_added_freq: (optional) this parameter takes in a list of ones and zeros. If tcmb correction is required
+      then 1 else 0. The ones and zeros should correspond to added_freq_in_mhz paramter.
+      Parameter is required only if there are additional input frequencies.
+    - correction_offset_scaling : (optional) this parameter takes in a list of ones and zeros. If correction offset and correction scaling is required
+      then 1 else 0. The ones and zeros should correspond to added_freq_in_mhz paramter.
+      Parameter is required only if there are additional input frequencies.
 
     Returns:
     ---------------
     - df : pandas.DataFrame with brightness temperature values.
       i.e The function returns a pandas DataFrame object containing brightness temperature data for different frequencies at each pixel.
+
+    Example Usage:
+    ---------------
+    PIXELS = 3072
+    CORRECTION_150_OFFSET = 21.4
+    CORRECTION_150_SCALING = 1.05
+    TCMB = 2.72548
+
+    load_dotenv()
+    DATA = os.environ.get("DATA")
+
+    df = extract_brightness_temp_at_pixel(
+        DATA, PIXELS, CORRECTION_150_OFFSET, CORRECTION_150_SCALING, 150, TCMB
+    )
+    df.to_csv(f"{DATA}brightness_temp_per_pixel.csv", index=False)
+
     """
 
     text_files = glob.glob(path_to_data + "*.txt")
@@ -100,16 +127,57 @@ def extract_brightness_temp_at_pixel(
 
                 brightness_temperature["23000MHz"] = data[pixel]
 
+            elif len(added_freq_in_mhz) != 0:
+                if frequencies[i] in added_freq_in_mhz:
+                    index_in_list = added_freq_in_mhz.index(frequencies[i])
+
+                    if (
+                        tcmb_correction_for_added_freq[index_in_list] == 1
+                        and correction_offset_scaling[index_in_list] == 1
+                    ):
+                        data[pixel] = (
+                            data[pixel] - correction_offset
+                        ) * correction_scale
+                        data[pixel] = data[pixel] - tcmb
+                        brightness_temperature[f"{frequencies[i]}"] = data[pixel]
+
+                    if (
+                        tcmb_correction_for_added_freq[index_in_list] == 0
+                        and correction_offset_scaling[index_in_list] == 1
+                    ):
+                        data[pixel] = (
+                            data[pixel] - correction_offset
+                        ) * correction_scale
+                        brightness_temperature[f"{frequencies[i]}"] = data[pixel]
+
+                    if (
+                        tcmb_correction_for_added_freq[index_in_list] == 1
+                        and correction_offset_scaling[index_in_list] == 0
+                    ):
+                        data[pixel] = data[pixel] - tcmb
+                        brightness_temperature[f"{frequencies[i]}"] = data[pixel]
+
+                    if (
+                        tcmb_correction_for_added_freq[index_in_list] == 0
+                        and correction_offset_scaling[index_in_list] == 0
+                    ):
+                        brightness_temperature[f"{frequencies[i]}"] = data[pixel]
+
         brightness_temperature_list.append(brightness_temperature)
 
     df = pd.DataFrame(brightness_temperature_list)
-    df = df.reindex(columns=["PIXEL", "22MHz", "45MHz", "150MHz", "408MHz", "1420MHz", "23000MHz"])
+    columns_for_df = ["PIXEL"]
+    frequencies = np.sort(frequencies)
+    for i in frequencies:
+        columns_for_df.append(f"{int(i)}MHz")
+    df = df.reindex(columns=columns_for_df)
 
     return df
 
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     PIXELS = 3072
     CORRECTION_150_OFFSET = 21.4
     CORRECTION_150_SCALING = 1.05

@@ -81,11 +81,20 @@ class ConvexModel:
         self.start_pix = start_pix
         self.stop_pix = stop_pix
 
-        self.frequencies = np.array([22.0, 45.0, 150.0, 408.0, 1420.0, 23000.0])
-        self.frequencies *= 1e-3
-        self.frequencies_string = np.array(
-            ["22", "45", "150", "408", "1420", "23000"]
-        )  # MHz
+        self.brightness_temperature_cols = self.brightness_temperature_df.columns.values
+        self.brightness_temperature_cols = np.delete(
+            self.brightness_temperature_cols, 0
+        )
+
+        self.frequencies = np.array([])
+        self.frequencies_string = np.array([])  # MHz
+        for i in range(len(self.brightness_temperature_cols)):
+            self.values = self.brightness_temperature_cols[i][:-3]
+            self.frequencies_string = np.append(self.frequencies_string, self.values)
+            self.frequencies = np.append(self.frequencies, int(self.values))
+
+        self.frequencies = self.frequencies * 1e-3  # GHz
+
         self.df = pd.merge(
             self.brightness_temperature_df, self.convexity_df, on="PIXEL"
         )
@@ -97,8 +106,10 @@ class ConvexModel:
         self.scale_gam_nu = (
             3.0 * self.charge_of_electron * self.magnetic_field * self.sine_alpha
         ) / (4.0 * np.pi * self.mass_of_electron * self.speed_of_light)
+        print(self.frequencies)
+        print(self.frequencies_string)
 
-    def modbessik2(self, u):  
+    def modbessik2(self, u):
         xnu = 5.0 / 3.0
         ORDER = xnu
         N = 1
@@ -130,7 +141,7 @@ class ConvexModel:
 
         Parameters:
         -------------
-        - nu (float): The frequency at which to calculate the model.
+        - nu (float): The frequency at which to calculate the model(in GHz).
         - fnorm (float): The scaling/normalization parameter.
         - alpha1 (float): The low frequency spectral index.
         - alpha2 (float): The high frequency spectral index.
@@ -215,14 +226,14 @@ class ConvexModel:
         - "TE": The electron temparature.
         - "NU_T": The frequecny of thermal absorption turnover.
 
-        Example:
+        Example Usage:
         -------------
         ```python
         model = ConvexModel("brightness_temperature.csv", "convexity.csv", "convex_model_initial_parameters.csv", "convex_pixel_fits.log")
         model.fit()
         ```
         In this example, the "ConvexModel" class is instantiated with the "brightness_temperature.csv",  "convexity.csv", "convex_model_initial_parameters.csv" and "convex_pixel_fits.log" files. Then, the `fit()` method is called to fit the convex model to the data
-        and write the fitted parameters into "convex_pixel_fits.log" file. The resulting DataFrame is assigned to the `result_df` variable.
+        and write the fitted parameters into "convex_pixel_fits.log" file.
         """
         logging.basicConfig(
             filename=self.convex_fits_file,
@@ -236,8 +247,12 @@ class ConvexModel:
 
         else:
             frame = pd.read_csv(self.convex_fits_file)
-            last_end_pixel = frame.loc[:, "PIXEL"].values[-1]
-            (start_pixel_index,) = np.where(self.pixels == last_end_pixel)[0] + 1
+            if frame.loc[:, "PIXEL"].values.size == 0:
+                last_end_pixel = 0
+                start_pixel_index = 0
+            else:
+                last_end_pixel = frame.loc[:, "PIXEL"].values[-1]
+                (start_pixel_index,) = np.where(self.pixels == last_end_pixel)[0] + 1
 
         stop_pixel = self.pixels[-1]
         (stop_pixel_index,) = np.where(self.pixels == stop_pixel)[0]
@@ -333,5 +348,3 @@ if __name__ == "__main__":
         stop_pix=0,
     )
     convex_model.fit()
-
-
