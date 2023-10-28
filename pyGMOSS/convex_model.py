@@ -47,6 +47,10 @@ class ConvexModel:
         The magnetic field in tesla (default is 1e-9).
     - verbose : bool, optional
         Whether to output verbose information (default is False).
+    - start_pix: int, optional
+        defaulted to 0. Pixel number for which convex model model optimization starts
+    - stop_pix: int, optional
+        defaulted to 0. Pixel number for which optimizing stops
     """
 
     def __init__(
