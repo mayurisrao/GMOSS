@@ -5,17 +5,15 @@ import matplotlib.pyplot as plt
 import scipy as sp
 from scipy.special import kve
 from scipy.integrate import quad
+import pygmoss_consts as pygc
 
-GSPAN = 100
-speed_of_light = 2.99792458e08
-mass_of_electron = 9.10938356e-31
-charge_of_electron = 1.6e-19
-sine_alpha = 1.0
-magnetic_field = 1e-9
-
-scale_gam_nu = (3.0 * charge_of_electron * magnetic_field * sine_alpha) / (
-    4.0 * np.pi * mass_of_electron * speed_of_light
-)
+GSPAN = pygc.GSPAN
+speed_of_light = pygc.SPEED_OF_LIGHT
+mass_of_electron = pygc.MASS_Of_ELECTRON
+charge_of_electron = pygc.CHARGE_OF_ELECTRON
+sine_alpha = pygc.SINE_ALPHA
+magnetic_field = pygc.MAGNETIC_FIELD
+scale_gam_nu = pygc.SCALE_GAM_NU
 
 
 def combine_df(df1, df2):
@@ -275,7 +273,7 @@ def all_sky_map(
     return series_plot
 
 
-def btemp_vs_freqency(
+def btemp_vs_frequency(
     path_to_concave_fits,
     path_to_convex_fits,
     path_to_the_brightness_temperature_file,
@@ -407,7 +405,7 @@ if __name__ == "__main__":
     series.to_csv(f"{DATA}all_sky_map_{frequency/1e-3}.csv", index=False, header=False)
 
     pixel = 2060
-    btemp_vs_freqency(
+    btemp_vs_frequency(
         f"{DATA}concave_pixel_fits.csv",
         f"{DATA}convex_pixel_fits.log",
         f"{DATA}brightness_temp_per_pixel.csv",

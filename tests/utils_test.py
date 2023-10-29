@@ -1,4 +1,4 @@
-from pygmoss import tools
+from pygmoss import utils
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -6,7 +6,7 @@ warnings.filterwarnings("ignore")
 
 def test_concave_func():
     assert (
-        tools.concave_func(
+        utils.concave_func(
             1.7,
             -1.7673603339907888,
             6.209947892799811,
@@ -22,7 +22,7 @@ def test_concave_func():
 
 def test_convex_func():
     assert (
-        tools.convex_func(
+        utils.convex_func(
             1.7,
             8.317511113295733e-07,
             2.51968636124662,
