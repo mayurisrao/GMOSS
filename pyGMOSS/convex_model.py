@@ -9,6 +9,7 @@ from scipy.special import kve
 from scipy.integrate import quad
 import time
 import logging
+import os
 
 
 class ConvexModel:
