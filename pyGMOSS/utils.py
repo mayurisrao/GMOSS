@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import scipy as sp
 from scipy.special import kve
 from scipy.integrate import quad
-import pygmoss_consts as pygc
+import pygmoss.pygmoss_consts as pygc
 
 GSPAN = pygc.GSPAN
 speed_of_light = pygc.SPEED_OF_LIGHT
@@ -251,11 +251,11 @@ def all_sky_map(
 
     if plot_all_sky == True:
         NSIDE = 16
-        print(
-            "Approximate resolution at NSIDE {} is {:.2} deg".format(
-                NSIDE, hp.nside2resol(NSIDE, arcmin=True) / 60
-            )
-        )
+        # print(
+        #     "Approximate resolution at NSIDE {} is {:.2} deg".format(
+        #         NSIDE, hp.nside2resol(NSIDE, arcmin=True) / 60
+        #     )
+        # )
         NPIX = hp.nside2npix(NSIDE)
         m = np.arange(NPIX)
         from matplotlib import cm
@@ -268,7 +268,7 @@ def all_sky_map(
             cmap=cm.jet,
         )
         hp.graticule()
-        plt.savefig(f"concave_fit_mollview_{frequency}_GHz.png")
+        plt.savefig(f"mollview_{frequency}_GHz.png")
 
     return series_plot
 
@@ -388,6 +388,120 @@ def btemp_vs_frequency(
     plt.savefig(f"{convexity}_pixel_{pixel_val}.png")
 
 
+def concave_convex_fits_generator(
+    path_to_input_param_file_from_GMOSS,
+    convert_to_csv=True,
+) -> pd.DataFrame:
+    """
+    Function name
+    -------------
+    "concave_convex_fits_generator"
+
+    Description
+    -------------
+    Generates Concave and Convex fits from GMOSS(Dr. Mayuri et. al.).
+
+    Parameters:
+    -------------
+    - path_to_input_param_file_from_GMOSS (str): Path to the the concave and convex fits file generated from GMOSS(.txt format)
+    - convert_to_csv (bool): The default value of the parameter is set to True, when True it generates two files convex_pixel_fits
+      and concave_pixel_fits. If the parmeter is set to False no files are generated, the function returns the convex_fits and concave_fits
+      as two data frames
+
+    Returns:
+    -------------
+        if convert_to_csv = True then the function generates concave and convex fits from the input_parameter_file
+        else if convert_to_csf = False then the function returns two data frames containing the convex fits and concave fits.
+
+
+    Example Usage:
+    -------------
+    ```
+    from pygmoss.utils import concave_convex_fits_generator
+
+    all_sky_map_generator_from_optimized_input_parm_file("GMOSS_params_allpix.txt")
+
+    ```
+    """
+    df_1_for_convex = pd.read_csv(
+        path_to_input_param_file_from_GMOSS, delimiter=" ", header=None
+    )
+    df_2_for_concave = df_1_for_convex
+
+    convex_column_names = [
+        "PIXEL",
+        "flag",
+        "norm_param",
+        "alpha1_param",
+        "dalpha_param",
+        "nubrk_param",
+        "Tx_param",
+        "Te_param",
+        "nut_param",
+        "chisquared",
+    ]
+    df_1_for_convex.columns = convex_column_names
+    convex_df = df_1_for_convex[df_1_for_convex.flag == 0]
+
+    concave_column_names = [
+        "PIXEL",
+        "flag",
+        "fnorm1_param",
+        "alpha1_param",
+        "dalpha_param",
+        "fnorm2_param",
+        "Tx_param",
+        "Te_param",
+        "nut_param",
+        "chisquared",
+    ]
+
+    df_2_for_concave.columns = concave_column_names
+    concave_df = df_2_for_concave[df_2_for_concave.flag == 1]
+
+    # Creating df for convex
+
+    PIXEL = pd.Series(convex_df["PIXEL"].values, name="PIXEL")
+
+    FNORM = pd.Series(10 ** convex_df["norm_param"].values, name="FNORM")
+    ALPHA1 = pd.Series(10 ** convex_df["alpha1_param"].values, name="ALPHA1")
+    d_alph = pd.Series(10 ** convex_df["dalpha_param"].values)
+    ALPHA2 = ALPHA1 + d_alph
+    ALPHA2.name = "ALPHA2"
+    NU_BREAK = pd.Series(10 ** convex_df["nubrk_param"].values, name="NU_BREAK")
+    TX = pd.Series(10 ** convex_df["Tx_param"].values, name="TX")
+    TE = pd.Series(10 ** convex_df["Te_param"].values, name="TE")
+    NU_T = pd.Series(10 ** convex_df["nut_param"].values, name="NU_T")
+    CHISQUARED = pd.Series(convex_df["chisquared"].values, name="CHISQUARED")
+
+    convex_refined_df = pd.concat(
+        [PIXEL, FNORM, ALPHA1, ALPHA2, NU_BREAK, TX, TE, NU_T, CHISQUARED], axis=1
+    )
+
+    # Creating df for concave
+
+    PIXEL = pd.Series(concave_df["PIXEL"].values, name="PIXEL")
+    FNORM1 = pd.Series(concave_df["fnorm1_param"].values, name="FNORM1")
+    FNORM2 = pd.Series(concave_df["fnorm2_param"].values, name="FNORM2")
+    ALPHA_1 = pd.Series(10 ** concave_df["alpha1_param"].values, name="ALPHA_1")
+    d_alph = pd.Series(10 ** concave_df["dalpha_param"].values)
+    ALPHA_2 = ALPHA_1 - d_alph
+    ALPHA_2.name = "ALPHA_2"
+    T_X = pd.Series(10 ** concave_df["Tx_param"].values, name="T_X")
+    T_E = pd.Series(10 ** concave_df["Te_param"].values, name="T_E")
+    NU_T = pd.Series(10 ** concave_df["nut_param"].values, name="NU_T")
+    CHISQUARED = pd.Series(concave_df["chisquared"].values, name="CHISQUARED")
+
+    concave_refined_df = pd.concat(
+        [PIXEL, FNORM1, FNORM2, ALPHA_1, ALPHA_2, T_X, T_E, NU_T, CHISQUARED], axis=1
+    )
+    if convert_to_csv == True:
+        concave_refined_df.to_csv("concave_pixel_fits.csv", index=False)
+        convex_refined_df.to_csv("convex_pixel_fits.csv", index=False)
+    else:
+        return (convex_refined_df, concave_refined_df)
+
+
 if __name__ == "__main__":
     from dotenv import load_dotenv
     import os
@@ -411,3 +525,15 @@ if __name__ == "__main__":
         f"{DATA}brightness_temp_per_pixel.csv",
         pixel_val=pixel,
     )
+
+    # to just plot all sky maps
+    concave_convex_fits_generator("GMOSS_params_allpix.txt")
+    frequency = 1200 * 1e-3  # GHz
+    sky_map_1200 = all_sky_map(
+        "concave_pixel_fits.csv",
+        "convex_pixel_fits.csv",
+        0.05,
+        number_of_pixels=3072,
+        plot_all_sky=False,
+    )
+    sky_map_1200.to_csv(f"all_sky_map_{frequency/1e-3}.csv", index=False, header=False)
