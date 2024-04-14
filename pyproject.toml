@@ -1,22 +1,23 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "pyGMOSS"
-version = "0.0.1"
-authors = [
-  { name="Example Author", email="author@example.com" },
-]
-description = "A small example package"
+[tool.poetry]
+name = "pygmoss"
+version = "0.1.0"
+description = "Global Model for the Radio Sky Spectrum"
+authors = ["Dr Mayuri Rao, Mohith P. A. <mohithpa2@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.7"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+packages = [{include = "pygmoss"}]
 
-[project.urls]
-"Homepage" = "https://github.com/mohithpa/GMOSS"
-"Bug Tracker" = "https://github.com/mohithpa/GMOSS/issues"
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+scipy = "^1.11.3"
+numpy = "^1.26.0"
+matplotlib = "^3.8.0"
+healpy = "^1.16.6"
+pandas = "^2.1.1"
+pytest = "^7.4.2"
+poetry = "^1.6.1"
+python-dotenv = "^1.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

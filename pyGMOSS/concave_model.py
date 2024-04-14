@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize, Bounds
 import matplotlib.pyplot as plt
+import glob
 
 
 class ConcaveModel:
@@ -16,13 +17,13 @@ class ConcaveModel:
 
     Parameters:
     -------------
-        - path_to_brightness_temperature_file (str): 
+        - path_to_brightness_temperature_file (str):
             The path to the file containing brightness temperature data.
-        - path_to_convexity_file (str): 
+        - path_to_convexity_file (str):
             The path to the file containing convexity data.
-        - T_e (float): 
+        - T_e (float):
             The electron temperature initial param to use in the model (default 8000).
-        - nu_t (float): 
+        - nu_t (float):
             The frequency of thermal absorbtion turnover initial param (default 0.001).
     """
 
@@ -39,10 +40,19 @@ class ConcaveModel:
             path_to_brightness_temperature_file
         )
         self.convexity_df = pd.read_csv(path_to_convexity_file)
-        self.frequencies_string = np.array(
-            ["22", "45", "150", "408", "1420", "23000"]
-        )  # MHz
-        self.frequencies = np.array([22, 45, 150, 408, 1420, 23000])  # MHz
+
+        self.brightness_temperature_cols = self.brightness_temperature_df.columns.values
+        self.brightness_temperature_cols = np.delete(
+            self.brightness_temperature_cols, 0
+        )
+
+        self.frequencies = np.array([])
+        self.frequencies_string = np.array([])
+        for i in range(len(self.brightness_temperature_cols)):
+            self.values = self.brightness_temperature_cols[i][:-3]
+            self.frequencies_string = np.append(self.frequencies_string, self.values)
+            self.frequencies = np.append(self.frequencies, int(self.values))
+
         self.frequencies = self.frequencies * 1e-3  # GHz
         self.df = pd.merge(
             self.brightness_temperature_df, self.convexity_df, on="PIXEL"
@@ -51,19 +61,21 @@ class ConcaveModel:
         self.df_concave.reset_index(inplace=True, drop=True)
         self.pixels = self.df_concave.loc[:, "PIXEL"]
 
-    def concave_func(self, nu, fnorm_1, fnorm_2, alpha_1, alpha_2, T_x, T_e, nu_t):
+    def concave_func(
+        self, nu, fnorm_1, fnorm_2, alpha_1, alpha_2, T_x, T_e, nu_t
+    ) -> float:
         """
-        Function Name: 
+        Function Name:
         -------------
         "concave_func()"
-        
+
         Description:
         -------------
         Calculates the value of the concave spectral model at the given frequency.
 
         Parameters:
         -------------
-        - nu (float): The frequency/frequencies at which to calculate the model.
+        - nu (float): The frequency/frequencies at which to calculate the model(in GHz).
         - fnorm_1 (float): The first scaling/normalization parameter.
         - fnorm_2 (float): The second scaling/normalization parameter.
         - alpha_1 (float): The low frequency spectral index.
@@ -81,7 +93,7 @@ class ConcaveModel:
         FFIT = fnorm_1 * (temp + T_x * nu**-2.1) * expo + T_e * (1.0 - expo)
         return FFIT
 
-    def chisquared(self, params, xobs, yobs):
+    def chisquared(self, params, xobs, yobs) -> float:
         chisq = 0
         yobs_length = len(yobs)
         for i in range(yobs_length):
@@ -90,7 +102,7 @@ class ConcaveModel:
             )
         return chisq / 6
 
-    def fit(self):
+    def fit(self) -> pd.DataFrame:
         """
         Function Name:
         -------------
@@ -106,7 +118,7 @@ class ConcaveModel:
 
         Returns:
         -------------
-        - This method returns a Pandas DataFrame object containing the fitted parameters/optimized for each pixel in the dataset. 
+        - This method returns a Pandas DataFrame object containing the fitted parameters/optimized for each pixel in the dataset.
           The DataFrame has the following columns:
         - "PIXEL": The pixel number for which the parameters were fitted.
         - "FNORM1": The first scaling constant.
@@ -116,7 +128,7 @@ class ConcaveModel:
         - "T_X": parameter representing optically thin free free emission index.
         - "T_E": The electron temperature.
         - "NU_T": The frequecny of thermal absorption turnover.
-        
+
 
         Example:
         -------------
@@ -124,10 +136,15 @@ class ConcaveModel:
         model = ConcaveModel("brightness_temperature.csv", "convexity.csv")
         result_df = model.fit()
         ```
-        In this example, the "ConcaveModel" is instantiated with the "brightness_temperature.csv" and "convexity.csv" files. Then, the `fit()` method is called to fit the concave model to the data and return a DataFrame containing the fitted parameters. 
+        In this example, the "ConcaveModel" is instantiated with the "brightness_temperature.csv" and "convexity.csv" files. Then, the `fit()` method is called to fit the concave model to the data and return a DataFrame containing the fitted parameters.
         The resulting DataFrame is assigned to the `result_df` variable.
         """
         to_save_list = []
+
+        index_150 = np.where(self.frequencies_string == "150")[0][0]
+        index_408 = np.where(self.frequencies_string == "408")[0][0]
+        index_23000 = np.where(self.frequencies_string == "23000")[0][0]
+
         for pixel in self.pixels:
             to_save = {}
             print(f"Pixel Number: {pixel}")
@@ -148,16 +165,19 @@ class ConcaveModel:
                 self.df_concave.loc[:, "PIXEL"] == pixel, "ALPHA_2"
             ].values[0]
 
-            fnorm_1 = self.b_temp[2] / np.power(self.frequencies[2], -1 * alpha_1)
+            fnorm_1 = self.b_temp[index_150] / np.power(
+                self.frequencies[index_150], -1 * alpha_1
+            )
             fnorm_2 = (
-                self.b_temp[3] / np.power(self.frequencies[3], -1 * alpha_2)
+                self.b_temp[index_408]
+                / np.power(self.frequencies[index_408], -1 * alpha_2)
             ) / fnorm_1
-            expo = np.exp(-1 * np.power(self.nu_t / self.frequencies[5], 2.1))
-            T_x = (1.0 / np.power(self.frequencies[5], -2.1)) * (
-                (self.b_temp[5] - self.T_e * (1.0 - expo)) / (fnorm_1 * expo)
+            expo = np.exp(-1 * np.power(self.nu_t / self.frequencies[index_23000], 2.1))
+            T_x = (1.0 / np.power(self.frequencies[index_23000], -2.1)) * (
+                (self.b_temp[index_23000] - self.T_e * (1.0 - expo)) / (fnorm_1 * expo)
             ) - (
-                (np.power(self.frequencies[5], -1.0 * alpha_1))
-                + (fnorm_2 * np.power(self.frequencies[5], -1.0 * alpha_2))
+                (np.power(self.frequencies[index_23000], -1.0 * alpha_1))
+                + (fnorm_2 * np.power(self.frequencies[index_23000], -1.0 * alpha_2))
             )
 
             if T_x <= 0:
@@ -172,7 +192,6 @@ class ConcaveModel:
                 [-np.inf, np.inf],
                 [0, 10000],
                 [-np.inf, np.inf],
-                
             )
 
             self.result = minimize(
@@ -191,7 +210,7 @@ class ConcaveModel:
             to_save["T_X"] = self.result.x[4]
             to_save["T_E"] = self.result.x[5]
             to_save["NU_T"] = self.result.x[6]
-            
+
             to_save["CHISQUARED"] = self.chisquared(
                 self.result.x, self.frequencies, self.b_temp
             )
@@ -204,9 +223,10 @@ class ConcaveModel:
 if __name__ == "__main__":
     from dotenv import load_dotenv
     import os
+
     load_dotenv()
     DATA = os.environ.get("DATA")
 
-    model = ConcaveModel(f"{DATA}brightness_temp_per_pixel.csv", "{DATA}convexity.csv")
+    model = ConcaveModel(f"{DATA}brightness_temp_per_pixel.csv", f"{DATA}convexity.csv")
     df = model.fit()
-    df.to_csv("{DATA}concave_pixel_fits_testing.csv", index=False)
+    df.to_csv(f"{DATA}concave_pixel_fits.csv", index=False)
