@@ -309,7 +309,7 @@ class ConvexModel:
                 [2, 3],
                 [2, 3],
                 [-np.inf, np.inf],
-                [-np.inf, np.inf],
+                [1e-40, np.inf],
                 [0, 10000],
                 [-np.inf, np.inf],
             )
