@@ -24,7 +24,7 @@ def combine_df(df1, df2):
 
     Description:
     -------------
-    Combines two data frames by it's pixel value.
+    Combines two data frames by it's pixel value. Make sure the Pixel values are in the 0th column.
 
     Parameters:
     -------------
@@ -35,6 +35,8 @@ def combine_df(df1, df2):
     -------------
     The combined data frame in the form of a pandas.DataFrame.
     """
+    df1.columns = range(df1.shape[1])
+    df2.columns = range(df2.shape[1])
     combined_df = pd.concat([df1, df2], ignore_index=True)
     combined_df_sorted = combined_df.sort_values(
         by="PIXEL", ascending=True, ignore_index=True
